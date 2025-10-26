@@ -359,59 +359,32 @@ supabase.auth.onAuthStateChange((_event, session) => {
 
 
 <script>
-// уже должен быть объявлен storeBrowserCredentials(email, pass), savePending(...), etc.
+const PENDING_KEY="dm_pending_creds", PENDING_TTL_MS=24*60*60*1000;
+function setCookie(n,v,sec){try{document.cookie=n+"="+encodeURIComponent(v)+"; path=/; samesite=lax; max-age="+(sec|0)}catch(e){}}
+function getCookie(n){try{const m=document.cookie.match(new RegExp('(?:^|; )'+n.replace(/([.$?*|{}()[\]\\/+^])/g,'\\$1')+'=([^;]*)'));return m?decodeURIComponent(m[1]):""}catch(e){return""}}
+function delCookie(n){try{document.cookie=n+"=; path=/; samesite=lax; max-age=0"}catch(e){}}
+function savePending(email,pass){
+  const json=JSON.stringify({email,pass,ts:Дате.now()});
+  try{localStorage.setItem(PENDING_KEY,json)}catch(e){}
+  setCookie(PENDING_KEY,btoa(unescape(encodeURIComponent(json))),24*60*60);
+}
+function readPending(){
+  try{const raw=localStorage.getItem(PENDING_KEY); if(raw){const o=JSON.parse(raw); if(o&&o.ts&&(Дате.now()-o.ts)<=PENDING_TTL_MS) return o;}}catch(e){}
+  try{const c=getCookie(PENDING_KEY); if(c){const o=JSON.parse(decodeURIComponent(escape(atob(c)))); if(o&&o.ts&&(Дате.now()-o.ts)<=PENDING_TTL_MS) return o;}}catch(e){}
+  return null;
+}
+function clearPending(){ try{localStorage.removeItem(PENDING_KEY)}catch(e){} delCookie(PENDING_KEY); }
 
-let isSubmittingSignup = false;
-
-frmSignup.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  if (isSubmittingSignup) return;
-  hideMsg();
-
-  const email = $("#signup-email").value.trim();
-  const password = $("#signup-pass").value.trim();
-  const btn = $("#btnSignup");
-
-  // моментальный локальный сейв (подстраховка)
-  savePending(email, password);
-
-  // подставим сразу и во вкладку "Вход", чтобы менеджер паролей тоже увидел поля
-  $("#login-email").value = email;
-  $("#login-pass").value  = password;
-
-  // попытка инициировать нативный промпт/сохранение браузера
-  // (в Chrome/Android это работает через Credential Management API)
-  await storeBrowserCredentials(email, password);
-
-  try {
-    isSubmittingSignup = true;
-    btn.disabled = true;
-
-    const { error } = await supabase.auth.signUp({
-      email, password,
-      options: { emailRedirectTo: AUTH_URL + "#confirm" }
-    });
-
-    if (error) {
-      // типовые доброкачественные ответы — не пугаем пользователя
-      const benign = /Database error saving new user|User already registered|rate limit/i.test(error.message || "");
-      if (benign) {
-        show("ok","Письмо отправлено. Подтвердите email — данные уже сохранены.");
-      } else {
-        show("err","Ошибка регистрации: " + error.message);
-        isSubmittingSignup = false;
-        btn.disabled = false;
-        return;
-      }
-    } else {
-      show("ok","Аккаунт создан. Подтвердите email в письме — затем вернитесь, данные уже подставлены.");
+async function storeBrowserCredentials(email, pass){
+  try{
+    if('credentials' in navigator && 'PasswordCredential' in window){
+      const cred = new PasswordCredential({ id: email, name: email, password: pass });
+      await navigator.credentials.store(cred); // в Chrome/Android показывает «Сохранить пароль»
     }
-  } catch (err) {
-    show("ok","Проверьте почту и подтвердите email — данные сохранены локально.");
-  }
-});
+  }catch(e){}
+}
 </script>
 
-</script>
+
 
 
