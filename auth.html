@@ -63,10 +63,19 @@ button.ghost{background:#fff; border-color:var(--line); color:#1f1f1f;}
 /* подсказки и алерты */
 .help{color:var(--muted); font-size:var(--fs-sm); text-align:left; margin-top:8px}
 .help.center{text-align:center; margin-top:12px;}
-.alert{padding:10px 12px; border:1px solid #e5e7eb; background:#f9fafb; border-radius:10px; font-size:var(--fs-sm); color:#374151;}
+.alert{
+  padding:10px 12px;
+  border:1px solid #e5e7eb;
+  background:#f9fafb;
+  border-radius:10px;
+  font-size:var(--fs-sm);
+  color:#374151;
+  margin-bottom:18px; /* отступ под уведомлением */
+}
 .alert.ok{border-color:#c6f1d3; background:#ecfdf5; color:#065f46}
 .alert.err{border-color:#ffd6d6; background:#fff1f1; color:#991b1b}
-footer{margin-top:14px; text-align:center; color:var(--muted); font-size:var(--fs-sm);}
+
+footer{margin-top:14px; text-align:center; color:#6b7280; font-size:var(--fs-sm);}
 .hidden{display:none!important}
 
 /* адаптив */
@@ -184,14 +193,13 @@ tabSignup.onclick = () => {
   hideMsg();
 };
 
-/* === Одноразовое локальное сохранение email/password ===
-   Храним в localStorage с TTL 24 часа, очищаем после логина */
+/* === Одноразовое локальное сохранение email/password === */
 const PENDING_KEY = "dm_pending_creds";
 const PENDING_TTL_MS = 24*60*60*1000; // 24 часа
 
 function savePending(email, pass){
   try{
-    localStorage.setItem(PENDING_KEY, JSON.stringify({email, pass, ts: Дате.now()}));
+    localStorage.setItem(PENDING_KEY, JSON.stringify({email, pass, ts: Date.now()}));
   }catch(e){}
 }
 function readPending(){
@@ -199,11 +207,21 @@ function readPending(){
     const raw = localStorage.getItem(PENDING_KEY);
     if(!raw) return null;
     const obj = JSON.parse(raw);
-    if(!obj || !obj.ts || (Дате.now()-obj.ts)>PENDING_TTL_MS){ clearPending(); return null; }
+    if(!obj || !obj.ts || (Date.now()-obj.ts)>PENDING_TTL_MS){ clearPending(); return null; }
     return obj;
   }catch(e){ return null; }
 }
 function clearPending(){ try{ localStorage.removeItem(PENDING_KEY); }catch(e){} }
+
+/* Попытка сохранить в менеджер паролей браузера */
+async function storeBrowserCredentials(email, pass){
+  try{
+    if('credentials' in navigator && 'PasswordCredential' in window){
+      const cred = new PasswordCredential({ id: email, name: email, password: pass });
+      await navigator.credentials.store(cred);
+    }
+  }catch(e){}
+}
 
 /* Если уже авторизован — сразу в трекер */
 (async () => {
@@ -214,25 +232,56 @@ function clearPending(){ try{ localStorage.removeItem(PENDING_KEY); }catch(e){} 
   }
 })();
 
-/* Регистрация: сохраняем в localStorage и задаём emailRedirectTo */
+/* ====== РЕГИСТРАЦИЯ БЕЗ ПОДТВЕРЖДЕНИЯ EMAIL ======
+   Сохраняем ввод, просим браузер сохранить пароль, создаём пользователя,
+   выполняем авто-вход и переводим в трекер. */
+let isSubmittingSignup = false;
+
 frmSignup.addEventListener("submit", async (e) => {
-  e.preventDefault(); hideMsg();
+  e.preventDefault();
+  if (isSubmittingSignup) return;
+  hideMsg();
+
   const email = $("#signup-email").value.trim();
   const password = $("#signup-pass").value.trim();
+  const btn = $("#btnSignup");
+
   try {
-    // 1) Сохраняем для будущей авто-подстановки/входа.
+    // 1) мгновенно сохраняем логин/пароль
     savePending(email, password);
 
-    // 2) Регистрируем с корректным редиректом
-    const { data, error } = await supabase.auth.signUp({
-      email, password,
-      options:{ emailRedirectTo: AUTH_URL + "#confirm" }
-    });
-    if(error) throw error;
+    // 2) подставляем в форму входа и показываем системный «Сохранить пароль»
+    $("#login-email").value = email;
+    $("#login-pass").value  = password;
+    tabLogin.click();
+    storeBrowserCredentials(email, password);
 
-    show("ok","Аккаунт создан. Подтвердите email в письме, затем вернитесь сюда.");
-  } catch(err){
-    show("err","Ошибка регистрации: " + err.message);
+    // 3) блокировка от повторных кликов
+    isSubmittingSignup = true;
+    btn.disabled = true;
+
+    // 4) создаём пользователя (подтверждение email отключено в Supabase)
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    if (error) throw error;
+
+    // 5) сразу логинимся
+    const { data: loginData, error: loginError } =
+      await supabase.auth.signInWithPassword({ email, password });
+    if (loginError) throw loginError;
+
+    const user = loginData.user;
+    // 6) создаём/обновляем запись о пользователе в БД
+    await ensureUserRow(user.id, user.email);
+
+    // 7) сохраняем user_id, чистим временные данные и уходим в приложение
+    localStorage.setItem("dm_user_id", user.id);
+    clearPending();
+    show("ok", "Аккаунт создан. Входим…");
+    setTimeout(() => location.href = INDEX_URL, 600);
+  } catch (err) {
+    show("err", "Ошибка регистрации: " + err.message);
+    isSubmittingSignup = false;
+    btn.disabled = false;
   }
 });
 
@@ -282,54 +331,12 @@ async function handleRecovery(){
 }
 handleRecovery();
 
-/* Установка нового пароля */
-$("#btnSetNew").onclick = async () => {
-  const pass = $("#rec-pass").value.trim();
-  if(pass.length < 6) return show("", "Пароль должен быть не короче 6 символов.");
-  try{
-    const { error } = await supabase.auth.updateUser({ password: pass });
-    if(error) throw error;
-    show("ok","Пароль обновлён. Входим…");
-    setTimeout(()=> location.href = INDEX_URL, 600);
-  }catch(err){ show("err","Ошибка обновления пароля: " + err.message); }
-};
-
-/* Поток подтверждения: #confirm → авто-подстановка и авто-вход */
-async function handleConfirmFlow(){
-  if(location.hash !== "#confirm") return;
-  tabLogin.click();
-  authTitle.textContent = "Вход";
-  show("ok","Email подтверждён. Проверяем данные…");
-
-  const pending = readPending();
-  if(pending){
-    $("#login-email").value = pending.email || "";
-    $("#login-pass").value  = pending.pass  || "";
-    try{
-      const { data, error } = await supabase.auth.signInWithPassword({ email: pending.email, password: pending.pass });
-      if(error) throw error;
-      const user = data.user;
-      localStorage.setItem("dm_user_id", user.id);
-      await ensureUserRow(user.id, user.email);
-      clearPending();
-      location.href = INDEX_URL;
-      return;
-    }catch(err){
-      show("", "Подтверждение прошло. Проверьте пароль и нажмите «Войти».");
-    }
-  }else{
-    show("", "Подтверждение прошло. Введите пароль и нажмите «Войти».");
-  }
-}
-handleConfirmFlow();
-
-/* На всякий случай — если пользователь вернулся без #confirm,
-   но данные ещё валидны, подставим их в форму входа */
+/* На случай возврата без авто-входа — подставим сохранённые данные в форму входа */
 (function prefillLoginFromPending(){
-  const pending = readPending();
-  if(pending){
-    if(!$("#login-email").value) $("#login-email").value = pending.email || "";
-    if(!$("#login-pass").value)  $("#login-pass").value  = pending.pass  || "";
+  const p = readPending();
+  if(p){
+    if(!$("#login-email").value) $("#login-email").value = p.email || "";
+    if(!$("#login-pass").value)  $("#login-pass").value  = p.pass  || "";
   }
 })();
 
@@ -344,7 +351,8 @@ async function ensureUserRow(userId, email){
         .from("users_fintracker").insert({ user_id: userId, email: email||null, data: {} });
       if(insErr) throw insErr;
     } else {
-      await supabase.from("users_fintracker").update({ email: email||null }).eq("user_id", userId);
+      await supabase.from("users_fintracker")
+        .update({ email: email||null }).eq("user_id", userId);
     }
   }catch(err){ console.warn("ensureUserRow:", err.message); }
 }
@@ -356,60 +364,3 @@ supabase.auth.onAuthStateChange((_event, session) => {
 </script>
 </body>
 </html>
-
-
-<script>
-let isSubmittingSignup = false;
-
-frmSignup.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  if (isSubmittingSignup) return;
-  hideMsg();
-
-  const email = $("#signup-email").value.trim();
-  const password = $("#signup-pass").value.trim();
-  const btn = $("#btnSignup");
-
-  try {
-    // 1️⃣ — мгновенно сохраняем логин/пароль
-    savePending(email, password);
-
-    // 2️⃣ — подставляем в форму входа, чтобы сработал менеджер паролей
-    $("#login-email").value = email;
-    $("#login-pass").value  = password;
-    tabLogin.click();
-    storeBrowserCredentials(email, password);
-
-    // 3️⃣ — блокируем кнопку от повторных нажатий
-    isSubmittingSignup = true;
-    btn.disabled = true;
-
-    // 4️⃣ — создаём пользователя (без подтверждения email)
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { emailRedirectTo: INDEX_URL } // можно опустить, подтверждения нет
-    });
-
-    if (error) throw error;
-    const user = data.user;
-
-    // 5️⃣ — сразу логиним
-    const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({ email, password });
-    if (loginError) throw loginError;
-
-    // 6️⃣ — создаём или обновляем строку пользователя в БД
-    await ensureUserRow(user.id, email);
-
-    // 7️⃣ — сохраняем user_id и редиректим
-    localStorage.setItem("dm_user_id", user.id);
-    clearPending();
-    show("ok", "Аккаунт создан. Входим…");
-    setTimeout(() => (location.href = INDEX_URL), 700);
-  } catch (err) {
-    show("err", "Ошибка регистрации: " + err.message);
-    isSubmittingSignup = false;
-    btn.disabled = false;
-  }
-});
-</script>
