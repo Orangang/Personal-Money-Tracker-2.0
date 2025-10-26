@@ -13,38 +13,60 @@
 }
 *{box-sizing:border-box}
 html,body{height:100%}
-body{margin:0; background:var(--bg); color:var(--ink); font:400 var(--fs-base)/1.45 "SF Pro Display",-apple-system,system-ui,Segoe UI,Roboto,Inter,Arial,sans-serif;}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font:400 var(--fs-base)/1.45 "SF Pro Display",-apple-system,system-ui,Segoe UI,Roboto,Inter,Arial,sans-serif;
+}
 a{color:var(--accent); text-decoration:none}
 a:hover{text-decoration:underline}
+
 .wrap{min-height:100vh; min-height:100dvh; display:flex; align-items:center; justify-content:center; padding:20px;}
 .card{width:min(480px,94vw); background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:22px 20px; margin:0 auto;}
+
 header{display:block; margin-bottom:18px}
 h1{margin:0; text-align:center; font-size:clamp(18px,2.4vw,22px); font-weight:700;}
+
 .tabs{display:flex; gap:8px; margin:8px 0 14px}
 .tab{flex:1; text-align:center; border:1px solid var(--line); border-radius:10px; padding:8px 12px; cursor:pointer; user-select:none; font-weight:600;}
 .tab[aria-selected="true"]{border-color:#2d6cdf; background:#2d6cdf; color:#fff;}
+
 label{font-size:var(--fs-sm); color:var(--muted); display:flex; flex-direction:column; gap:8px; margin-bottom:10px}
 input{width:100%; min-height:42px; padding:10px 12px; border:1px solid var(--line); border-radius:10px; font:inherit;}
+
 button{border-radius:10px; border:1px solid #d4e1ff; background:#eaf1ff; color:#1f4fbf; font-weight:700; cursor:pointer; transition:border-color .2s ease,background .2s ease;}
 button.primary{border-color:#2d6cdf; background:#2d6cdf; color:#fff;}
 button.ghost{background:#fff; border-color:var(--line); color:#1f1f1f;}
+
 .actions.two{ display:flex; gap:8px; flex-wrap:nowrap; margin-top:16px; }
 .actions.two button{ flex:1 1 0; min-height:42px; padding:10px 12px; }
 .actions.single{ margin-top:12px; }
 .actions.single button{ width:100%; min-height:42px; padding:10px 12px; }
+
 .form-hr{width:100%; height:1px; background:var(--line); margin:14px auto 0;}
 .form-hr.login{  margin:18px auto 0; }
 .form-hr.signup{ margin:14px auto 0; }
+
 .help{color:var(--muted); font-size:var(--fs-sm); text-align:left; margin-top:8px}
 .help.center{ text-align:center; margin-top:12px; }
+
 .alert{padding:10px 12px; border:1px solid #e5e7eb; background:#f9fafb; border-radius:10px; font-size:var(--fs-sm); color:#374151;}
 .alert.ok{border-color:#c6f1d3; background:#ecfdf5; color:#065f46}
 .alert.err{border-color:#ffd6d6; background:#fff1f1; color:#991b1b}
+
 footer{margin-top:14px; text-align:center; color:var(--muted); font-size:var(--fs-sm);}
 .hidden{display:none!important}
+
+/* NEW: блок уведомления о подтверждении */
+.notice{
+  padding:12px; border:1px dashed #9ec1ff; background:#f5f9ff; border-radius:10px;
+  color:#1f3b7a; font-size:var(--fs-sm); margin-bottom:12px;
+}
+.notice .row{display:flex; gap:8px; margin-top:8px; flex-wrap:wrap}
+.notice .row button{min-height:38px; padding:8px 10px}
 @media (max-width:420px){ .card{padding:18px 16px; margin:0 auto;} .tabs{gap:6px} .tab{padding:7px 10px} }
 </style>
 </head>
+
 <body>
 <div class="wrap">
   <div class="card">
@@ -57,7 +79,17 @@ footer{margin-top:14px; text-align:center; color:var(--muted); font-size:var(--f
 
     <div id="msg" class="alert hidden"></div>
 
-    <!-- вход -->
+    <!-- NEW: уведомление о неподтверждённой почте -->
+    <div id="confirmNotice" class="notice hidden">
+      <div><b>Подтверди почту</b>, чтобы завершить регистрацию. Мы отправили письмо на <span id="cnEmail"></span>.</div>
+      <div class="row">
+        <button id="btnResend" class="ghost" type="button">Отправить письмо ещё раз</button>
+        <button id="btnOpenAuth" class="primary" type="button">Я подтвердил — войти</button>
+      </div>
+      <div class="help">После клика по ссылке в письме ты попадёшь на эту страницу, и вход завершится автоматически.</div>
+    </div>
+
+    <!-- форма входа -->
     <form id="login" autocomplete="on">
       <label>Email <input type="email" id="login-email" placeholder="you@example.com" required></label>
       <label>Пароль <input type="password" id="login-pass" placeholder="••••••••" minlength="6" required></label>
@@ -69,7 +101,7 @@ footer{margin-top:14px; text-align:center; color:var(--muted); font-size:var(--f
       <div class="help center">Забыли пароль? Пришлём ссылку на почту.</div>
     </form>
 
-    <!-- регистрация -->
+    <!-- форма регистрации -->
     <form id="signup" class="hidden" autocomplete="on">
       <label>Email <input type="email" id="signup-email" placeholder="you@example.com" required></label>
       <label>Пароль <input type="password" id="signup-pass" placeholder="минимум 6 символов" minlength="6" required></label>
@@ -114,6 +146,8 @@ const frmLogin = $("#login");
 const frmSignup = $("#signup");
 const recovery = $("#recovery");
 const authTitle = $("#authTitle");
+const confirmNotice = $("#confirmNotice");
+const cnEmail = $("#cnEmail");
 
 tabLogin.onclick = () => {
   tabLogin.setAttribute("aria-selected","true");
@@ -123,6 +157,7 @@ tabLogin.onclick = () => {
   recovery.classList.add("hidden");
   authTitle.textContent = "Вход";
   hideMsg();
+  confirmNotice.classList.add("hidden");
 };
 tabSignup.onclick = () => {
   tabSignup.setAttribute("aria-selected","true");
@@ -132,19 +167,16 @@ tabSignup.onclick = () => {
   recovery.classList.add("hidden");
   authTitle.textContent = "Регистрация";
   hideMsg();
+  confirmNotice.classList.add("hidden");
 };
 
-/* === Префилл после регистрации (временное хранение) === */
+/* === Префилл после регистрации === */
 const CRED_KEY = "dm_auth_prefill";
-function saveCred(email, pass){
-  try{ sessionStorage.setItem(CRED_KEY, JSON.stringify({email, pass, ts: Date.now()})); }catch(e){}
-}
-function readCred(){
-  try{ return JSON.parse(sessionStorage.getItem(CRED_KEY)||"null"); }catch(e){ return null; }
-}
+function saveCred(email, pass){ try{ sessionStorage.setItem(CRED_KEY, JSON.stringify({email, pass, ts: Date.now()})); }catch(e){} }
+function readCred(){ try{ return JSON.parse(sessionStorage.getItem(CRED_KEY)||"null"); }catch(e){ return null; } }
 function clearCred(){ try{ sessionStorage.removeItem(CRED_KEY); }catch(e){} }
 
-/* Если уже авторизован — в трекер */
+/* Если авторизован — в трекер */
 (async () => {
   const { data: { session } } = await supabase.auth.getSession();
   if(session && session.user){
@@ -153,15 +185,12 @@ function clearCred(){ try{ sessionStorage.removeItem(CRED_KEY); }catch(e){} }
   }
 })();
 
-/* === ОБМЕН КОДА НА СЕССИЮ ПОСЛЕ ПОДТВЕРЖДЕНИЯ === */
+/* === ОБМЕН КОДА ПОСЛЕ ПОДТВЕРЖДЕНИЯ === */
 (async () => {
-  const hasCode = !!getParam("code");
-  const type = getParam("type"); // signup / recovery / magiclink
-  if (hasCode) {
+  if (getParam("code")) {
     try{
       const { data, error } = await supabase.auth.exchangeCodeForSession(window.location.href);
       if(error) throw error;
-      // Успешно: есть сессия → чистим префилл и уходим в приложение
       clearCred();
       localStorage.setItem("dm_user_id", data.user.id);
       location.replace(INDEX_URL);
@@ -170,12 +199,12 @@ function clearCred(){ try{ sessionStorage.removeItem(CRED_KEY); }catch(e){} }
       show("err", "Не удалось завершить вход: " + err.message);
     }
   }
-  // Если кода нет, но есть сохранённые креды — подставим в форму
+  // Подставим сохранённые данные (если есть)
   const cred = readCred();
   if(cred){
     $("#login-email").value = cred.email || "";
     $("#login-pass").value = cred.pass || "";
-    // Переходим на вкладку "Вход"
+    cnEmail.textContent = cred.email || "";
     tabLogin.onclick();
   }
 })();
@@ -186,19 +215,20 @@ frmSignup.addEventListener("submit", async (e) => {
   const email = $("#signup-email").value.trim();
   const password = $("#signup-pass").value.trim();
   try {
-    // Сохраним во временное хранилище, чтобы подставить после подтверждения
-    saveCred(email, password);
-
-    const { data, error } = await supabase.auth.signUp({ email, password, options:{
-      emailRedirectTo: AUTH_URL   // явно укажем, куда вернуться после клика в письме
-    }});
+    saveCred(email, password); // чтобы префиллить вход
+    const { error } = await supabase.auth.signUp({
+      email, password,
+      options:{ emailRedirectTo: AUTH_URL } // ключевой момент!
+    });
     if(error) throw error;
 
-    show("ok","Аккаунт создан. Подтверди почту и вернись — вход завершится автоматически.");
-    // Переключим на вкладку «Вход» с префиллом формы
-    tabLogin.onclick();
+    // Показываем явное уведомление, префиллируем форму входа
     $("#login-email").value = email;
     $("#login-pass").value = password;
+    cnEmail.textContent = email;
+    tabLogin.onclick();
+    confirmNotice.classList.remove("hidden");
+    show("ok","Мы отправили письмо с подтверждением. Открой его и кликни по ссылке.");
   } catch(err){ show("err","Ошибка регистрации: " + err.message); }
 });
 
@@ -215,7 +245,17 @@ frmLogin.addEventListener("submit", async (e) => {
     await ensureUserRow(user.id, user.email);
     clearCred();
     location.href = INDEX_URL;
-  } catch(err){ show("err","Ошибка входа: " + err.message); }
+  } catch(err){
+    const msgText = (err && err.message) ? String(err.message) : "Ошибка входа";
+    if (/email not confirmed/i.test(msgText)) {
+      // NEW: показываем блок подтверждения с ресендом
+      cnEmail.textContent = $("#login-email").value.trim();
+      confirmNotice.classList.remove("hidden");
+      show("err","Email not confirmed — проверь почту и подтверди.");
+    } else {
+      show("err","Ошибка входа: " + msgText);
+    }
+  }
 });
 
 /* === Сброс пароля === */
@@ -229,6 +269,29 @@ $("#btnReset").onclick = async () => {
     if(error) throw error;
     show("ok","Ссылка на смену пароля отправлена на " + email);
   }catch(err){ show("err","Не удалось отправить письмо: " + err.message); }
+};
+
+/* === Кнопки уведомления === */
+// Отправить письмо ещё раз
+$("#btnResend").onclick = async () => {
+  hideMsg();
+  let email = $("#login-email").value.trim();
+  if(!email){
+    const c = readCred(); email = c && c.email ? c.email : "";
+  }
+  if(!email) return show("", "Укажи email в форме входа.");
+  try{
+    const { error } = await supabase.auth.resend({ type:"signup", email, options:{ emailRedirectTo: AUTH_URL }});
+    if(error) throw error;
+    show("ok","Письмо повторно отправлено на " + email);
+  }catch(err){ show("err","Не удалось отправить: " + err.message); }
+};
+// «Я подтвердил — войти» (просто перезагрузим auth.html — если линк уже кликнут, сессия подтянется и перекинем в INDEX)
+$("#btnOpenAuth").onclick = async () => {
+  hideMsg();
+  const { data: { session } } = await supabase.auth.getSession();
+  if(session && session.user){ location.href = INDEX_URL; }
+  else { location.href = AUTH_URL; } // обновим страницу; если кликали письмо — придёт ?code=... и произойдёт обмен
 };
 
 /* === Экран восстановления === */
@@ -259,7 +322,7 @@ $("#btnSetNew").onclick = async () => {
   }catch(err){ show("err","Ошибка обновления пароля: " + err.message); }
 };
 
-/* === Создание/обновление записи пользователя в БД === */
+/* === Создание строки пользователя в БД === */
 async function ensureUserRow(userId, email){
   try{
     const { data: rows, error: selErr } = await supabase
@@ -270,13 +333,12 @@ async function ensureUserRow(userId, email){
         .from("users_fintracker").insert({ user_id: userId, email: email||null, data: {} });
       if(insErr) throw insErr;
     } else {
-      await supabase.from("users_fintracker")
-        .update({ email: email||null }).eq("user_id", userId);
+      await supabase.from("users_fintracker").update({ email: email||null }).eq("user_id", userId);
     }
   }catch(err){ console.warn("ensureUserRow:", err.message); }
 }
 
-/* === Синхронизация состояния === */
+/* === Синхронизация === */
 supabase.auth.onAuthStateChange((_event, session) => {
   if(session && session.user) localStorage.setItem("dm_user_id", session.user.id);
 });
