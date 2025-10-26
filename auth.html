@@ -241,18 +241,29 @@ tabSignup.onclick = () => {
   }
 })();
 
+// базовые ссылки (держи их вверху файла один раз)
+const BASE      = "https://orangang.github.io/Personal-Money-Tracker-2.0/";
+const AUTH_URL  = BASE + "auth.html";
+const INDEX_URL = BASE + "index.html";
+
 // регистрация
 frmSignup.addEventListener("submit", async (e) => {
   e.preventDefault(); hideMsg();
   const email = $("#signup-email").value.trim();
   const password = $("#signup-pass").value.trim();
   try {
-    const { data, error } = await supabase.auth.signUp({ email, password });
-    if(error) throw error;
+    // ВАЖНО: явный redirect после подтверждения почты
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { emailRedirectTo: AUTH_URL }
+    });
+    if (error) throw error;
+
     show("ok","Аккаунт создан, проверяем сессию…");
     setTimeout(async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if(session && session.user){
+      if (session && session.user) {
         localStorage.setItem("dm_user_id", session.user.id);
         await ensureUserRow(session.user.id, session.user.email);
         location.href = INDEX_URL;
@@ -260,8 +271,11 @@ frmSignup.addEventListener("submit", async (e) => {
         show("", "Проверьте почту для подтверждения и войдите повторно.");
       }
     }, 700);
-  } catch(err){ show("err","Ошибка регистрации: " + err.message); }
+  } catch (err) {
+    show("err","Ошибка регистрации: " + err.message);
+  }
 });
+
 
 // вход
 frmLogin.addEventListener("submit", async (e) => {
