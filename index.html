@@ -7,7 +7,7 @@
 <link rel="shortcut icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64'><text y='50%' x='50%' dominant-baseline='middle' text-anchor='middle' font-size='42'>₽</text></svg>">
 
 <style>
-/* === Шрифт === */
+/* === шрифт === */
 @font-face{
   font-family:"SF Pro Display";
   font-style:normal;
@@ -16,7 +16,7 @@
   font-display:swap;
 }
 
-/* === Базовые токены и типографика (как в первом коде) === */
+/* === базовые токены/стили — как в первом коде === */
 :root{
   --bg:#fafafa; --card:#ffffff; --ink:#111; --muted:#666; --line:#eaeaea;
   --ok:#1f8b4c; --warn:#cc7a00; --bad:#c0392b; --accent:#2d6cdf;
@@ -86,7 +86,7 @@ details.modal>summary::-webkit-details-marker{display:none}
 .summary-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .summary-row small{color:var(--muted)}
 
-/* === iOS/WebKit фиксы для date/month/select === */
+/* iOS/WebKit фиксы для date/month/select */
 input[type="date"],input[type="month"]{
   -webkit-appearance:none;appearance:none;width:100%;
   min-height:48px;line-height:1.2;padding:12px 14px;border:1px solid var(--line);border-radius:8px;background:#fff;font:inherit
@@ -95,7 +95,7 @@ input[type="date"]::-webkit-date-and-time-value,
 input[type="month"]::-webkit-date-and-time-value{ text-align:left }
 select{-webkit-appearance:none;appearance:none;min-height:48px;line-height:1.2;padding:12px 14px;font:inherit;background:#fff;border:1px solid var(--line);border-radius:8px}
 
-/* === Кнопочные группы под заголовками: одна строка со скроллом на мобиле === */
+/* Кнопки под заголовками — одна строка, скролл на мобиле */
 @media (max-width:640px){
   .card .card-title{flex-direction:column;align-items:flex-start}
   .card .card-title .controls{width:100%;overflow:auto}
@@ -103,16 +103,14 @@ select{-webkit-appearance:none;appearance:none;min-height:48px;line-height:1.2;p
 }
 .card .card-title .controls button{white-space:nowrap;flex:0 0 auto}
 
-/* === AUTH (растянуть поля) === */
-#authCard .auth-wrap{max-width:720px;margin:0 auto}
-#authCard .auth-grid{display:grid;grid-template-columns:1fr;gap:var(--gap)} /* всегда одна широкая колонка */
-.tabs{display:flex;gap:6px;margin-bottom:10px}
-.tabs button{background:#fff;border:1px solid var(--line);color:#111;padding:8px 14px;height:auto;border-radius:999px}
-.tabs button.active{background:#eaf1ff;border-color:#d4e1ff;color:#1f4fbf;font-weight:700}
-#authHelp{margin-top:8px}
-#authCard .controls{margin-top:6px}
+/* === AUTH — центр и узкая форма === */
+#authCard{max-width:760px;margin:0 auto}                  /* карточка уже и по центру */
+#authCard .auth-wrap{padding:0 40px 16px}                 /* нужные 40px слева/справа */
+#authCard .auth-grid{display:grid;grid-template-columns:1fr;gap:var(--gap);justify-items:center}
+#authCard label{max-width:520px;width:100%}               /* поля уже */
+#authCard .controls{justify-content:center}               /* кнопки по центру */
 
-/* Видимость приложения после входа */
+/* Видимость приложения */
 .app-only{display:none}
 body.signed .app-only{display:block}
 body.signed #authCard{display:none !important}
@@ -124,12 +122,11 @@ body.signed #authCard{display:none !important}
 .toast .title{font-weight:700;margin-bottom:4px} .toast .msg{color:var(--muted);white-space:pre-line} .toast .close{margin-left:auto;cursor:pointer;opacity:.6}
 @media(max-width:640px){#toast-root{right:10px;top:10px}}
 
-.header-right{display:flex;align-items:center;gap:8px}
-
-/* === Операции в 3 колонки строго (как на скрине) === */
-.ops{display:grid;gap:var(--gap)}            /* мобильный — одна колонка */
+/* === Операции в 3 колонки (строго) === */
+.ops{display:grid;gap:var(--gap)}
 @media (min-width:960px){ .ops{grid-template-columns:repeat(3,1fr)} }
 .ops .card{height:100%}
+.header-right{display:flex;align-items:center;gap:8px}
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -706,3 +703,4 @@ body.signed #authCard{display:none !important}
 </script>
 </body>
 </html>
+
