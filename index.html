@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Dmitry — Personal Money Tracker</title>
 <link rel="shortcut icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64'><text y='50%' x='50%' dominant-baseline='middle' text-anchor='middle' font-size='42'>₽</text></svg>">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 /* ===========================
    БАЗОВЫЕ СТИЛИ + АДАПТИВ
@@ -63,9 +62,10 @@ h3{font-size:clamp(16px,2vw,20px); margin:0 0 10px}
 .account h4{margin:0 0 8px; font-size:var(--fs-lg)}
 .account .sum{font-weight:700}
 .account .hint{font-size:var(--fs-sm); color:var(--muted)}
-label{font-size:var(--fs-sm); color:var(--muted); display:block; margin-bottom:12px}
+/* ГЛАВНАЯ ПРАВКА: отступы label */
+label{font-size:var(--fs-sm); color:var(--muted); display:flex; flex-direction:column; gap:8px; margin-bottom:12px}
 input, select, textarea{
-  width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:8px; background:#fff; color:#theink;
+  width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:8px; background:#fff; color:#111;
   font:inherit;
 }
 .controls{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px}
@@ -83,12 +83,22 @@ hr{border:none; border-top:1px solid var(--line); margin:12px 0}
 .tag{display:inline-block; padding:2px 8px; font-size:var(--fs-sm); border:1px solid var(--line); border-radius:999px}
 .help{font-size:var(--fs-sm); color:var(--muted)}
 footer{margin:24px 0; text-align:center; color:var(--muted); font-size:var(--fs-sm)}
+footer a{color:inherit; text-decoration:none; transition:color .2s ease}
+footer a:hover{color:var(--accent); text-decoration:underline}
 /* простые "модалки" на <details> */
 details.modal{border:1px solid var(--line); border-radius:var(--radius); padding:12px}
 details.modal > summary{cursor:pointer; list-style:none; font-weight:700}
 details.modal > summary::-webkit-details-marker{display:none}
 .summary-row{display:flex; align-items:center; justify-content:space-between; gap:8px}
 .summary-row small{color:var(--muted)}
+/* Точный зазор 12px между Дата/Сумма в 3-й колонке (оба блока details) */
+.row.cols-3>.card:nth-child(3) details.modal .row,
+.row.cols-3>.card:nth-child(3) .row.cols-2{gap:12px !important; column-gap:12px !important; row-gap:12px !important}
+
+/* Topbar for user and signout */
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.topbar .right{display:flex;gap:8px;align-items:center}
+.userpill{font-size:var(--fs-sm);padding:4px 10px;border-radius:999px;background:#f2f6ff;border:1px solid #dbe7ff;color:#1f4fbf}
 </style>
 
 <style>
@@ -155,57 +165,21 @@ h1, h2, h3{
   -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
   font-synthesis:none;
 }
-
-/* Страница авторизации */
-.auth-page{display:none; max-width:400px; margin:100px auto; padding:20px;}
-.auth-page.active{display:block}
-.auth-tabs{display:flex; gap:8px; margin-bottom:16px; border-bottom:1px solid var(--line); padding-bottom:8px}
-.auth-tabs button{
-  padding:8px 16px; border:none; background:transparent; color:var(--muted);
-  cursor:pointer; border-bottom:2px solid transparent; transition:all 0.2s;
-}
-.auth-tabs button.active{color:var(--accent); border-bottom-color:var(--accent); font-weight:600}
-.auth-form label{font-size:var(--fs-sm); color:var(--muted); display:block; margin-bottom:12px}
-.auth-form input{min-height:48px; padding:12px 14px}
-.auth-form .error{color:var(--bad); font-size:var(--fs-sm); margin-top:4px}
-.auth-page .card{max-width:100%}
-.main-content{display:none}
-.main-content.active{display:block}
 </style>
 </head>
 <body>
-<!-- СТРАНИЦА АВТОРИЗАЦИИ -->
-<div class="auth-page" id="authPage">
-  <div class="card">
-    <h2 style="margin-top:0">Личный финтрекер</h2>
-    <div class="auth-tabs">
-      <button class="active" data-mode="login">Вход</button>
-      <button data-mode="signup">Регистрация</button>
-    </div>
-    <form class="auth-form" id="authForm">
-      <label id="emailLabel">Email<input type="email" id="authEmail" autocomplete="email" required></label>
-      <label>Пароль<input type="password" id="authPassword" autocomplete="current-password" required></label>
-      <label id="confirmLabel" style="display:none">Повторите пароль<input type="password" id="authPasswordConfirm" autocomplete="new-password"></label>
-      <div class="error" id="authError"></div>
-      <div class="controls" style="margin-top:16px">
-        <button class="primary" type="submit" id="authSubmit">Войти</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- ОСНОВНОЙ КОНТЕНТ -->
-<div class="main-content" id="mainContent">
 <div class="container">
-  <header style="margin-bottom:16px">
-    <div style="display:flex; align-items:center; justify-content:space-between; gap:16px;">
-      <div>
-        <h1 style="margin-bottom:4px">Личный финтрекер Дмитрия</h1>
-        <div class="muted">4 счёта + долг • облачное хранение • экспорт/импорт JSON</div>
-      </div>
-      <button class="ghost" id="btnLogout" style="white-space:nowrap">Сменить пользователя</button>
+  <!-- Topbar with user and change button -->
+  <div class="topbar">
+    <div class="left">
+      <h1 style="margin:0">Личный финтрекер Дмитрия</h1>
+      <div class="muted">4 счёта + долг • локально, без бэкенда • экспорт/импорт JSON</div>
     </div>
-  </header>
+    <div class="right">
+      <span id="userEmail" class="userpill">—</span>
+      <button class="ghost" id="btnSignOut">Сменить пользователя</button>
+    </div>
+  </div>
 
   <!-- DASHBOARD -->
   <section class="card">
@@ -440,13 +414,38 @@ h1, h2, h3{
 
   <footer>сделано руками <a href="https://dmitry-design.ru/" target="_blank" rel="noopener">dmitry-design.ru</a></footer>
 </div>
-</div>
-</div>
+
+<!-- Supabase SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = "https://hxbrvnwukieluzlffgyr.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh4YnJ2bnd1a2llbHV6bGZmZ3lyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE0NTM1NDMsImV4cCI6MjA3NzAyOTU0M30.IWViKSutxlXo1R3DqArijjeseK6nQ9m55ZPe5EUToLQ";
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Guard: only for authenticated users
+(async () => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if(!(session && session.user)){
+    location.href = "auth.html";
+    return;
+  }
+  localStorage.setItem("dm_user_id", session.user.id);
+  const pill = document.getElementById("userEmail");
+  if(pill) pill.textContent = session.user.email || session.user.id;
+})();
+
+// Sign out -> auth.html
+document.getElementById("btnSignOut").addEventListener("click", async () => {
+  try{ await supabase.auth.signOut(); }catch(e){}
+  localStorage.removeItem("dm_user_id");
+  location.href = "auth.html";
+});
+</script>
 
 <script>
 /* ============================================================================
-   Personal Money Tracker — MVP v2 (Supabase Auth)
-   Хранение: Supabase Database
+   Personal Money Tracker — MVP v1 (supabase-guard)
+   Хранение локально: localStorage (dm_fin_v1)
    ========================================================================== */
 (() => {
   "use strict";
@@ -458,38 +457,18 @@ h1, h2, h3{
   const fmtNum = (n, d=2) => (Number(n)||0).toLocaleString('ru-RU',{minimumFractionDigits:d,maximumFractionDigits:d});
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
   const todayISO = () => new Date().toISOString().slice(0,10);
-  const monthStr = (d=new Date()) => d.toLocaleString('ru-RU',{month:'long', year:'numeric'});
   const uid = () => Math.random().toString(36).slice(2,10) + Date.now().toString(36).slice(-4);
   const round = (n) => Math.round((Number(n)||0));
 
-  // SUPABASE
-  const SUPABASE_URL = 'https://zqoobfeogfiehutdzsbg.supabase.co';
-  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpxb29iZmVvZ2ZpZWh1dGR6c2JnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE0MjI5MjQsImV4cCI6MjA3Njk5ODkyNH0.4yZqT-y81ZIx933yb-9lOR8CMKh-ebRcWNnh4r1vrlE';
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  // СТЕЙТ
+  const LS_KEY = 'dm_fin_v1';
+  let state = load();
 
-  // AUTH STATE
-  let currentUser = null;
-  let authMode = 'login'; // 'login' или 'signup'
-  let state = { settings:{ accounts:{ base:0, fixed:0, fun:0, save:0, debtTotal:0, debtPaid:0 }, autosplit:{ base:40, fixed:30, fun:10, save:20 }, monthStartDay:1 }, transactions:[] };
-
-  // AUTH
-  async function checkAuth(){
-    const { data: { user } } = await supabase.auth.getUser();
-    return user;
-  }
-  
-  async function load(){
+  function load(){
     try{
-      const { data: data, error } = await supabase
-        .from('user_data')
-        .select('data')
-        .eq('user_id', currentUser.id)
-        .single();
-      
-      if(error) throw error;
-      if(data && data.data) return data.data;
+      const raw = localStorage.getItem(LS_KEY);
+      if(raw) return JSON.parse(raw);
     }catch(e){}
-    
     return {
       settings:{
         accounts:{ base:0, fixed:0, fun:0, save:0, debtTotal:0, debtPaid:0 },
@@ -499,108 +478,21 @@ h1, h2, h3{
       transactions:[]
     };
   }
-  
-  async function save(){
-    try{
-      const { error } = await supabase
-        .from('user_data')
-        .upsert({
-          user_id: currentUser.id,
-          data: state,
-          updated_at: new Date().toISOString()
-        });
-      if(error) throw error;
-    }catch(e){
-      console.error('Ошибка сохранения:', e);
-      alert('Ошибка сохранения данных: ' + e.message);
-    }
-  }
-  
-  function showAuth(){ $('#authPage').classList.add('active'); $('#mainContent').classList.remove('active'); }
-  function showMain(){ $('#authPage').classList.remove('active'); $('#mainContent').classList.add('active'); }
+  function save(){ localStorage.setItem(LS_KEY, JSON.stringify(state)); }
 
-  // AUTH FORM
-  $$('.auth-tabs button').forEach(btn => {
-    btn.onclick = () => {
-      authMode = btn.getAttribute('data-mode');
-      $$('.auth-tabs button').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      
-      $('#emailLabel').textContent = authMode==='login' ? 'Email' : 'Email (для регистрации)';
-      $('#confirmLabel').style.display = authMode==='signup' ? 'block' : 'none';
-      $('#authSubmit').textContent = authMode==='login' ? 'Войти' : 'Зарегистрироваться';
-      $('#authError').textContent = '';
-      
-      // Очистка полей
-      $('#authEmail').value = '';
-      $('#authPassword').value = '';
-      $('#authPasswordConfirm').value = '';
-    };
-  });
-  
-  $('#authForm').onsubmit = async (e) => {
-    e.preventDefault();
-    const email = $('#authEmail').value.trim();
-    const password = $('#authPassword').value;
-    const errorEl = $('#authError');
-    errorEl.textContent = '';
-    
-    if(!email || !password){
-      errorEl.textContent = 'Заполните все поля';
-      return;
-    }
-    
-    if(authMode==='signup'){
-      const confirm = $('#authPasswordConfirm').value;
-      if(password !== confirm){
-        errorEl.textContent = 'Пароли не совпадают';
-        return;
-      }
-    }
-    
-    try{
-      if(authMode==='signup'){
-        const { data, error } = await supabase.auth.signUp({ email, password });
-        if(error) throw error;
-        if(!data.user) throw new Error('Регистрация не завершена');
-        currentUser = data.user;
-      } else {
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-        if(error) throw error;
-        currentUser = data.user;
-      }
-      
-      state = await load();
-      showMain();
-      renderAll();
-    }catch(err){
-      errorEl.textContent = err.message || 'Ошибка авторизации';
-    }
-  };
-  
-  $('#btnLogout').onclick = async () => {
-    await supabase.auth.signOut();
-    currentUser = null;
-    state = { settings:{ accounts:{ base:0, fixed:0, fun:0, save:0, debtTotal:0, debtPaid:0 }, autosplit:{ base:40, fixed:30, fun:10, save:20 }, monthStartDay:1 }, transactions:[] };
-    showAuth();
-  };
-  
-  // ИНИЦИАЛИЗАЦИЯ
-  (async () => {
-    currentUser = await checkAuth();
-    if(currentUser){
-      state = await load();
-      showMain();
-    } else {
-      showAuth();
-    }
-    
-    // ИНИЦИАЛИЗАЦИЯ ПОЛЕЙ
-    $('#incDate').value = todayISO();
-    $('#expDate').value = todayISO();
-    $('#trDate').value = todayISO();
-    $('#debtDate').value = todayISO();
-    $('#fltMonth').value = new Date().toISOString().slice(0,7);
+  // ИНИЦИАЛИЗАЦИЯ ПОЛЕЙ
+  $('#incDate').value = todayISO();
+  $('#expDate').value = todayISO();
+  $('#trDate').value = todayISO();
+  $('#debtDate').value = todayISO();
+
+  // Выставляем месяц фильтра
+  function initMonthFilter(){
+    const months = state.transactions.map(t => (t.date||'').slice(0,7)).filter(Boolean);
+    const def = months.length ? months.sort().slice(-1)[0] : new Date().toISOString().slice(0,7);
+    $('#fltMonth').value = def;
+  }
+  initMonthFilter();
 
   // Настройки -> значения
   function fillSettingsUI(){
@@ -628,7 +520,9 @@ h1, h2, h3{
 
   // РЕНДЕР ДАШБОРДА
   function renderDashboard(){
-    $('#currentMonthBadge').textContent = monthStr(new Date());
+    const month = $('#fltMonth').value || new Date().toISOString().slice(0,7);
+    const [y,m] = month.split('-').map(Number);
+    $('#currentMonthBadge').textContent = new Date(y, m-1, 1).toLocaleString('ru-RU',{month:'long', year:'numeric'});
 
     const A = state.settings.accounts;
     const accs = [
@@ -654,23 +548,22 @@ h1, h2, h3{
 
     const pct = (A.debtTotal>0) ? clamp((A.debtPaid/A.debtTotal)*100,0,100) : 0;
     $('#debtProgress').style.width = pct.toFixed(1)+'%';
-    $('#debtLabel').textContent = `${fmtRUB(A.debtPaid)} из ${fmtRUB(A.debtTotal)} (${pct.toFixed(1)}%)`;
+    $('#debtLabel').textContent = `${new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB',maximumFractionDigits:0}).format(A.debtPaid)} из ${new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB',maximumFractionDigits:0}).format(A.debtTotal)} (${pct.toFixed(1)}%)`;
 
-    const month = $('#fltMonth').value || new Date().toISOString().slice(0,7);
     const listM = state.transactions.filter(t => (t.date||'').startsWith(month));
     const sumIncome = listM.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
     const sumExpense = listM.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
-    $('#kpiIncomeMonth').textContent = fmtRUB(sumIncome);
-    $('#kpiExpenseMonth').textContent = fmtRUB(sumExpense);
+    $('#kpiIncomeMonth').textContent = new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB',maximumFractionDigits:0}).format(sumIncome);
+    $('#kpiExpenseMonth').textContent = new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB',maximumFractionDigits:0}).format(sumExpense);
 
-    const tISO = todayISO();
+    const tISO = new Date().toISOString().slice(0,10);
     const todayExp = state.transactions.filter(t=>t.type==='expense' && t.date===tISO).reduce((s,t)=>s+t.amount,0);
-    $('#kpiToday').textContent = fmtRUB(todayExp);
+    $('#kpiToday').textContent = new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB',maximumFractionDigits:0}).format(todayExp);
 
     const totalBal = A.base + A.fixed + A.fun + A.save;
-    $('#kpiTotal').textContent = fmtRUB(totalBal);
+    $('#kpiTotal').textContent = new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB',maximumFractionDigits:0}).format(totalBal);
 
-    $('#todayStr').textContent = new Date().toLocaleDateString('ru-RU');
+    document.getElementById('todayStr').textContent = new Date().toLocaleDateString('ru-RU');
   }
 
   // РЕНДЕР ТАБЛИЦЫ
@@ -690,6 +583,12 @@ h1, h2, h3{
       list = list.filter(t => ((t.category||'')+(t.note||'')).toLowerCase().includes(q));
     }
 
+    if(!tp && !acc && !q && list.length===0){
+      list = state.transactions.slice().sort((a,b)=> (a.date>b.date? -1: a.date<b.date? 1: 0));
+      const cutoff = new Date(); cutoff.setMonth(cutoff.getMonth()-12);
+      list = list.filter(t => (t.date && new Date(t.date) >= cutoff));
+    }
+
     const tbody = $('#txTable tbody');
     tbody.innerHTML = '';
     for(const t of list){
@@ -704,7 +603,7 @@ h1, h2, h3{
         <td>${t.date}</td>
         <td><span class="tag">${labelType(t.type)}</span></td>
         <td>${accounts||'—'}</td>
-        <td style="white-space:nowrap">${(t.type==='expense'||(t.type==='transfer'&&t.fromAccount))?'-':''}${fmtNum(t.amount,0)} ₽</td>
+        <td style="white-space:nowrap">${(t.type==='expense'||(t.type==='transfer'&&t.fromAccount))?'-':''}${new Intl.NumberFormat('ru-RU',{maximumFractionDigits:0}).format(t.amount)} ₽</td>
         <td>${t.category||'—'}</td>
         <td>${t.note||''}</td>
         <td style="text-align:right"><button class="ghost" data-del="${t.id}">✕</button></td>
@@ -712,13 +611,13 @@ h1, h2, h3{
       tbody.appendChild(tr);
     }
 
-    $('#listInfo').textContent = `Показано: ${list.length} операций. Всего в базе: ${state.transactions.length}.`;
+    document.getElementById('listInfo').textContent = `Показано: ${list.length} операций. Всего в базе: ${state.transactions.length}.`;
 
     $$('button[data-del]').forEach(btn=>{
-      btn.onclick = async () => {
+      btn.onclick = () => {
         const id = btn.getAttribute('data-del');
         state.transactions = state.transactions.filter(t=>t.id!==id);
-        await save();
+        save();
         renderAll();
       };
     });
@@ -730,29 +629,30 @@ h1, h2, h3{
   function incomeSplit(amount){
     const s = state.settings.autosplit;
     const parts = {
-      base: round(amount * (s.base/100)),
-      fixed: round(amount * (s.fixed/100)),
-      fun:   round(amount * (s.fun/100)),
-      save:  round(amount * (s.save/100)),
+      base: Math.round(amount * (s.base/100)),
+      fixed: Math.round(amount * (s.fixed/100)),
+      fun:   Math.round(amount * (s.fun/100)),
+      save:  Math.round(amount * (s.save/100)),
     };
     const sum = parts.base + parts.fixed + parts.fun + parts.save;
-    const delta = round(amount - sum);
-    if(delta !== 0) parts.base += delta; // доброс в базовый
+    const delta = Math.round(amount - sum);
+    if(delta !== 0) parts.base += delta;
     return parts;
   }
-  $('#btnPreviewSplit').onclick = () => {
-    const amount = Number($('#incAmount').value||0);
-    if(!amount){ $('#splitPreview').style.display='none'; return; }
+  document.getElementById('btnPreviewSplit').onclick = () => {
+    const amount = Number(document.getElementById('incAmount').value||0);
+    const preview = document.getElementById('splitPreview');
+    if(!amount){ preview.style.display='none'; return; }
     const p = incomeSplit(amount);
-    $('#splitPreview').style.display = 'block';
-    $('#splitPreview').textContent =
-      `Распределение: Базовый ${fmtRUB(p.base)}, Расходный ${fmtRUB(p.fixed)}, Весёлый ${fmtRUB(p.fun)}, Накопления ${fmtRUB(p.save)}.`;
+    preview.style.display = 'block';
+    preview.textContent =
+      `Распределение: Базовый ${p.base.toLocaleString('ru-RU')} ₽, Расходный ${p.fixed.toLocaleString('ru-RU')} ₽, Весёлый ${p.fun.toLocaleString('ru-RU')} ₽, Накопления ${p.save.toLocaleString('ru-RU')} ₽.`;
   };
-  $('#btnAddIncome').onclick = async () => {
-    const date = $('#incDate').value || todayISO();
-    const amount = Number($('#incAmount').value||0);
-    const category = ($('#incCategory').value||'Доход');
-    const note = ($('#incNote').value||'');
+  document.getElementById('btnAddIncome').onclick = () => {
+    const date = document.getElementById('incDate').value || new Date().toISOString().slice(0,10);
+    const amount = Number(document.getElementById('incAmount').value||0);
+    const category = (document.getElementById('incCategory').value||'Доход');
+    const note = (document.getElementById('incNote').value||'');
     if(amount<=0) return alert('Введите сумму дохода > 0');
     const split = incomeSplit(amount);
     for(const k of ['base','fixed','fun','save']){
@@ -761,36 +661,36 @@ h1, h2, h3{
         state.settings.accounts[k] += split[k];
       }
     }
-    await save();
-    $('#incAmount').value=''; $('#incNote').value=''; $('#splitPreview').style.display='none';
+    save();
+    document.getElementById('incAmount').value=''; document.getElementById('incNote').value=''; document.getElementById('splitPreview').style.display='none';
     renderAll();
   };
 
   // РАСХОД
-  $('#btnAddExpense').onclick = async () => {
-    const date = $('#expDate').value || todayISO();
-    const amount = Number($('#expAmount').value||0);
-    const account = $('#expAcc').value;
-    const category = ($('#expCategory').value||'Расход');
-    const note = ($('#expNote').value||'');
+  document.getElementById('btnAddExpense').onclick = () => {
+    const date = document.getElementById('expDate').value || new Date().toISOString().slice(0,10);
+    const amount = Number(document.getElementById('expAmount').value||0);
+    const account = document.getElementById('expAcc').value;
+    const category = (document.getElementById('expCategory').value||'Расход');
+    const note = (document.getElementById('expNote').value||'');
     if(amount<=0) return alert('Введите сумму расхода > 0');
     if(state.settings.accounts[account] < amount){
       if(!confirm('На счёте не хватает средств. Продолжить?')) return;
     }
     state.transactions.push({id:uid(), date, type:'expense', account, amount, category, note});
     state.settings.accounts[account] -= amount;
-    await save();
-    $('#expAmount').value=''; $('#expNote').value='';
+    save();
+    document.getElementById('expAmount').value=''; document.getElementById('expNote').value='';
     renderAll();
   };
 
   // ПЕРЕВОД
-  $('#btnTransfer').onclick = async () => {
-    const date = $('#trDate').value || todayISO();
-    const amount = Number($('#trAmount').value||0);
-    const from = $('#trFrom').value;
-    const to = $('#trTo').value;
-    const note = ($('#trNote').value||'');
+  document.getElementById('btnTransfer').onclick = () => {
+    const date = document.getElementById('trDate').value || new Date().toISOString().slice(0,10);
+    const amount = Number(document.getElementById('trAmount').value||0);
+    const from = document.getElementById('trFrom').value;
+    const to = document.getElementById('trTo').value;
+    const note = (document.getElementById('trNote').value||'');
     if(amount<=0) return alert('Введите сумму перевода > 0');
     if(from===to) return alert('Выберите разные счета');
     if(state.settings.accounts[from] < amount){
@@ -799,17 +699,17 @@ h1, h2, h3{
     state.transactions.push({id:uid(), date, type:'transfer', fromAccount:from, toAccount:to, amount, category:'Перевод', note});
     state.settings.accounts[from] -= amount;
     state.settings.accounts[to] += amount;
-    await save();
-    $('#trAmount').value=''; $('#trNote').value='';
+    save();
+    document.getElementById('trAmount').value=''; document.getElementById('trNote').value='';
     renderAll();
   };
 
   // ДОЛГ
-  $('#btnDebtPay').onclick = async () => {
-    const date = $('#debtDate').value || todayISO();
-    const amount = Number($('#debtPayAmount').value||0);
-    const from = $('#debtFrom').value;
-    const note = ($('#debtNote').value||'');
+  document.getElementById('btnDebtPay').onclick = () => {
+    const date = document.getElementById('debtDate').value || new Date().toISOString().slice(0,10);
+    const amount = Number(document.getElementById('debtPayAmount').value||0);
+    const from = document.getElementById('debtFrom').value;
+    const note = (document.getElementById('debtNote').value||'');
     if(amount<=0) return alert('Введите сумму платежа > 0');
 
     state.transactions.push({id:uid(), date, type:'debt', amount, account: from || undefined, category:'Платёж по долгу', note});
@@ -820,51 +720,51 @@ h1, h2, h3{
       }
       state.settings.accounts[from] -= amount;
     }
-    state.settings.accounts.debtPaid = clamp(round(state.settings.accounts.debtPaid + amount), 0, round(state.settings.accounts.debtTotal));
-    await save();
-    $('#debtPayAmount').value=''; $('#debtNote').value='';
+    state.settings.accounts.debtPaid = clamp(Math.round(state.settings.accounts.debtPaid + amount), 0, Math.round(state.settings.accounts.debtTotal));
+    save();
+    document.getElementById('debtPayAmount').value=''; document.getElementById('debtNote').value='';
     renderAll();
   };
-  $('#btnDebtReset').onclick = async () => {
+  document.getElementById('btnDebtReset').onclick = () => {
     if(confirm('Сбросить прогресс погашения долга?')){
       state.settings.accounts.debtPaid = 0;
-      await save(); renderAll();
+      save(); renderAll();
     }
   };
 
   // ФИЛЬТРЫ
-  $('#fltMonth').oninput = () => { renderDashboard(); renderTable(); };
-  $('#fltType').oninput = renderTable;
-  $('#fltAcc').oninput  = renderTable;
-  $('#fltSearch').oninput = renderTable;
+  document.getElementById('fltMonth').oninput = () => { renderDashboard(); renderTable(); };
+  document.getElementById('fltType').oninput = renderTable;
+  document.getElementById('fltAcc').oninput  = renderTable;
+  document.getElementById('fltSearch').oninput = renderTable;
 
   // НАСТРОЙКИ
-  $('#btnSaveSettings').onclick = async () => {
+  document.getElementById('btnSaveSettings').onclick = () => {
     const A = state.settings.accounts;
-    A.base = Number($('#stBase').value||0);
-    A.fixed = Number($('#stFixed').value||0);
-    A.fun = Number($('#stFun').value||0);
-    A.save = Number($('#stSave').value||0);
-    A.debtTotal = Number($('#stDebtTotal').value||0);
-    A.debtPaid  = Number($('#stDebtPaid').value||0);
+    A.base = Number(document.getElementById('stBase').value||0);
+    A.fixed = Number(document.getElementById('stFixed').value||0);
+    A.fun = Number(document.getElementById('stFun').value||0);
+    A.save = Number(document.getElementById('stSave').value||0);
+    A.debtTotal = Number(document.getElementById('stDebtTotal').value||0);
+    A.debtPaid  = Number(document.getElementById('stDebtPaid').value||0);
 
     state.settings.autosplit = {
-      base: Number($('#spBase').value||0),
-      fixed: Number($('#spFixed').value||0),
-      fun:   Number($('#spFun').value||0),
-      save:  Number($('#spSave').value||0)
+      base: Number(document.getElementById('spBase').value||0),
+      fixed: Number(document.getElementById('spFixed').value||0),
+      fun:   Number(document.getElementById('spFun').value||0),
+      save:  Number(document.getElementById('spSave').value||0)
     };
-    state.settings.monthStartDay = clamp(Number($('#stMonthStart').value||1),1,28);
+    state.settings.monthStartDay = Math.max(1, Math.min(28, Number(document.getElementById('stMonthStart').value||1)));
 
     const sum = Object.values(state.settings.autosplit).reduce((s,n)=>s+Number(n||0),0);
     if(sum!==100) return alert('Сумма долей должна быть 100%.');
 
-    await save(); renderAll();
+    save(); renderAll();
     alert('Настройки сохранены.');
   };
 
   // ДЕМО-ДАННЫЕ
-  $('#btnFillDemo').onclick = async () => {
+  document.getElementById('btnFillDemo').onclick = () => {
     if(!confirm('Загрузить демо-данные и перезаписать текущие?')) return;
     state = {
       settings:{
@@ -886,15 +786,15 @@ h1, h2, h3{
         {id:uid(), date: isoShift(-2), type:'debt', amount:15000, account:'base', category:'Платёж по долгу', note:'погашение'},
       ]
     };
-    await save(); renderAll();
+    save(); initMonthFilter(); renderAll();
   };
-  function isoShift(days){
-    const d = new Date(); d.setDate(d.getDate()+days);
+  function isoShift(дней){
+    const d = new Дате(); d.setDate(d.getDate()+дней);
     return d.toISOString().slice(0,10);
   }
 
   // ЭКСПОРТ / ИМПОРТ / WIPE
-  $('#btnExport').onclick = () => {
+  document.getElementById('btnExport').onclick = () => {
     const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -902,8 +802,8 @@ h1, h2, h3{
     a.click();
     URL.revokeObjectURL(a.href);
   };
-  $('#btnImport').onclick = () => { $('#fileImport').click(); };
-  $('#fileImport').onchange = async (e) => {
+  document.getElementById('btnImport').onclick = () => { document.getElementById('fileImport').click(); };
+  document.getElementById('fileImport').onchange = async (e) => {
     const file = e.target.files[0];
     if(!file) return;
     try{
@@ -911,7 +811,7 @@ h1, h2, h3{
       const data = JSON.parse(text);
       if(!data.settings || !data.transactions) throw new Error('Неверный формат файла');
       state = data;
-      await save(); renderAll();
+      save(); initMonthFilter(); renderAll();
       alert('Импорт выполнен.');
     }catch(err){
       alert('Ошибка импорта: ' + err.message);
@@ -919,31 +819,22 @@ h1, h2, h3{
       e.target.value = '';
     }
   };
-  $('#btnWipe').onclick = async () => {
+  document.getElementById('btnWipe').onclick = () => {
     if(confirm('Удалить все данные? Это действие необратимо.')){
-      try{
-        const { error } = await supabase
-          .from('user_data')
-          .delete()
-          .eq('user_id', currentUser.id);
-        if(error) throw error;
-        state = await load();
-        renderAll();
-      }catch(e){
-        alert('Ошибка: ' + e.message);
-      }
+      localStorage.removeItem(LS_KEY);
+      state = load();
+      initMonthFilter();
+      renderAll();
     }
   };
 
   // ГЛАВНЫЙ РЕНДЕР
   function renderAll(){ fillSettingsUI(); renderDashboard(); renderTable(); }
-  
-    if(currentUser) {
-      renderAll();
-    }
-    
-  })(); // Конец IIFE
-  
-  // Мини-логгер ошибок
+  renderAll();
+
   window.addEventListener('error', e => console.error('GlobalError:', e.message, e.filename, e.lineno));
   window.addEventListener('unhandledrejection', e => console.error('UnhandledRejection:', e.reason));
+})();
+</script>
+</body>
+</html>
