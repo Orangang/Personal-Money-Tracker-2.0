@@ -92,7 +92,7 @@ button{
 }
 button.primary{border-color:#2d6cdf; background:#2d6cdf; color:#fff}
 button.danger{border-color:#ffddd9; background:#ffeceb; color:#b22a1f}
-button.ghost{background:#fff; border-color:var(--line); color:var(--ink)}
+button.ghost{background:#fff; border-color:var(--line); color:#111}
 hr{border:none; border-top:1px solid var(--line); margin:12px 0}
 .table{width:100%; border-collapse:collapse}
 .table th,.table td{border-bottom:1px solid var(--line); padding:8px; text-align:left; font-size:var(--fs-sm)}
@@ -120,21 +120,44 @@ input[type="month"]::-webkit-date-and-time-value{ text-align:left }
   input, select, textarea{ font-size:16px } /* чтоб iOS не зумил */
 }
 
-/* Выравнивание трёх кнопок по высоте (как у "Импорт JSON") */
+/* Выравнивание трёх кнопок по высоте */
 .card .card-title .controls button{
   height:44px; min-height:44px; padding:0 16px; white-space:nowrap; flex:0 0 auto;
 }
 
-/* Авторизация: скрывашка */
-.auth-hidden{display:none !important}
+/* Авторизация: скрывашка приложения пока не вошли */
+.app-only{ display:none; }
+body.signed .app-only{ display:block; }
+body.signed #authCard{ display:none !important; }
+
+/* Тост-уведомления */
+#toast-root{
+  position: fixed; right: 16px; top: 16px; z-index: 9999;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.toast{
+  background: #fff; border:1px solid var(--line); border-left-width:4px;
+  border-radius: 10px; box-shadow: var(--shadow); padding: 10px 12px;
+  min-width: 240px; max-width: min(92vw, 420px); font-size: var(--fs-sm);
+  display:flex; align-items:flex-start; gap:10px;
+}
+.toast.ok{    border-left-color: var(--ok); }
+.toast.warn{  border-left-color: var(--warn); }
+.toast.err{   border-left-color: var(--bad); }
+.toast .title{ font-weight:700; margin-bottom:4px; }
+.toast .msg{ color: var(--muted); white-space: pre-line; }
+.toast .close{ margin-left:auto; cursor:pointer; opacity:.6; }
+@media (max-width:640px){
+  #toast-root{ right: 10px; top: 10px; }
+}
 </style>
 
 <!-- Supabase клиент (v2) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  /* ВСТАВЬ СЮДА СВОИ КЛЮЧИ */
-  window.SUPABASE_URL  = "https://YOUR_PROJECT.supabase.co";
-  window.SUPABASE_ANON_KEY = "YOUR_PUBLIC_ANON_KEY";
+  /* ВСТАВЬ СЮДА СВОИ КЛЮЧИ (или оставь заглушки и подставь позже) */
+  window.SUPABASE_URL  = "https://zqoobfeogfiehutdzsbg.supabase.co";
+  window.SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpxb29iZmVvZ2ZpZWh1dGR6c2JnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE0MjI5MjQsImV4cCI6MjA3Njk5ODkyNH0.4yZqT-y81ZIx933yb-9lOR8CMKh-ebRcWNnh4r1vrlE";
 </script>
 </head>
 <body>
@@ -143,6 +166,9 @@ input[type="month"]::-webkit-date-and-time-value{ text-align:left }
     <h1>Личный финтрекер Дмитрия</h1>
     <div class="muted">Локально + облачная синхронизация • Supabase Auth • экспорт/импорт JSON</div>
   </header>
+
+  <!-- Контейнер тостов -->
+  <div id="toast-root" aria-live="polite"></div>
 
   <!-- Авторизация -->
   <section class="card" id="authCard" style="margin-bottom:16px">
@@ -176,7 +202,7 @@ input[type="month"]::-webkit-date-and-time-value{ text-align:left }
   </section>
 
   <!-- DASHBOARD -->
-  <section class="card">
+  <section class="card app-only">
     <div class="card-title">
       <h2 style="margin:0">Дашборд</h2>
       <span class="badge" id="currentMonthBadge"></span>
@@ -213,7 +239,7 @@ input[type="month"]::-webkit-date-and-time-value{ text-align:left }
   </section>
 
   <!-- ОПЕРАЦИИ -->
-  <section class="row cols-3" style="margin-top:16px">
+  <section class="row cols-3 app-only" style="margin-top:16px">
     <!-- Доход -->
     <div class="card">
       <h3>Добавить доход</h3>
@@ -315,7 +341,7 @@ input[type="month"]::-webkit-date-and-time-value{ text-align:left }
   </section>
 
   <!-- ТРАНЗАКЦИИ -->
-  <section class="card" style="margin-top:16px">
+  <section class="card app-only" style="margin-top:16px">
     <div class="card-title">
       <h2 style="margin:0">Транзакции</h2>
       <div class="controls">
@@ -379,7 +405,7 @@ input[type="month"]::-webkit-date-and-time-value{ text-align:left }
   </section>
 
   <!-- НАСТРОЙКИ -->
-  <section class="card" style="margin-top:16px">
+  <section class="card app-only" style="margin-top:16px">
     <h2>Настройки</h2>
     <div class="row cols-4">
       <label>Базовый ₽ <input type="number" id="stBase" min="0" step="0.01"></label>
@@ -406,14 +432,12 @@ input[type="month"]::-webkit-date-and-time-value{ text-align:left }
     </div>
   </section>
 
-  <footer>v2 • локальное хранение + Supabase синк • сделано под тебя</footer>
+  <footer class="app-only">v2 • локальное хранение + Supabase синк • сделано под тебя</footer>
 </div>
 
 <script>
 /* ============================================================================
-   Personal Money Tracker — v2
-   Локально: localStorage (dm_fin_v1)
-   Облако:   Supabase (auth + Postgres)
+   Personal Money Tracker — v2 + toasts + auth gating
    ========================================================================== */
 (() => {
   "use strict";
@@ -431,7 +455,8 @@ input[type="month"]::-webkit-date-and-time-value{ text-align:left }
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
   const todayISO = () => new Date().toISOString().slice(0,10);
   const monthStr = (d=new Date()) => d.toLocaleString('ru-RU', {month:'long', year:'numeric'});
-  const uid = () => crypto.randomUUID ? crypto.randomUUID() : (Math.random().toString(36).slice(2,10) + Date.now().toString(36).slice(-4));
+  const uid = () => (crypto.randomUUID ? crypto.randomUUID() :
+                    (Math.random().toString(36).slice(2,10) + Date.now().toString(36).slice(-4)));
   const LS_KEY = 'dm_fin_v1';
 
   let state = load();
@@ -448,20 +473,32 @@ input[type="month"]::-webkit-date-and-time-value{ text-align:left }
   }
   function save(){ localStorage.setItem(LS_KEY, JSON.stringify(state)); }
 
-  function toggleAuthUI(signedIn){
-    const card = $('#authCard');
-    const badge = $('#authStatus');
-    const btnOut = $('#btnSignOut');
-    if(signedIn){
-      card.classList.add('auth-hidden');
-      badge.textContent = 'online';
-      btnOut.style.display = '';
-    }else{
-      card.classList.remove('auth-hidden');
-      badge.textContent = 'offline';
-      btnOut.style.display = 'none';
-    }
+  /* ---------- UI helpers: toast & gating ---------- */
+  function toast(type, title, msg, timeout=4200){
+    const root = document.getElementById('toast-root');
+    if(!root) return alert(`${title}\n${msg||''}`);
+    const el = document.createElement('div');
+    el.className = `toast ${type}`;
+    el.innerHTML = `
+      <div>
+        <div class="title">${title}</div>
+        ${msg ? `<div class="msg">${msg}</div>` : ''}
+      </div>
+      <div class="close">✕</div>
+    `;
+    root.appendChild(el);
+    const close = () => { el.style.opacity='0'; setTimeout(()=>el.remove(),200); };
+    el.querySelector('.close').onclick = close;
+    setTimeout(close, timeout);
   }
+  function setSigned(signed){
+    document.body.classList.toggle('signed', !!signed);
+    const badge = document.getElementById('authStatus');
+    if(badge) badge.textContent = signed ? 'online' : 'offline';
+  }
+
+  // старт — по умолчанию режим "не вошёл"
+  setSigned(false);
 
   async function ensureProfileAndSettings(user){
     await supa.from('profiles').upsert({ id:user.id, email:user.email }, { onConflict:'id' });
@@ -536,67 +573,85 @@ input[type="month"]::-webkit-date-and-time-value{ text-align:left }
     }
   }
 
-  // ---- Auth UI events ----
+  /* ---- Auth UI events ---- */
   document.addEventListener('click', async (e)=>{
     const id = e.target.id;
     try{
       if(id==='btnSignIn'){
+        if(!SUPABASE_URL || !SUPABASE_ANON_KEY){
+          toast('err','Нет конфигурации','Укажи SUPABASE_URL и ANON_KEY в <head>.'); return;
+        }
         const email = $('#authEmail').value.trim();
         const pass = $('#authPass').value;
+        if(!email || !pass){ toast('warn','Нужно заполнить','E-mail и пароль обязательны.'); return; }
+
         const { data, error } = await supa.auth.signInWithPassword({ email, password: pass });
         if(error) throw error;
         CURRENT_USER = data.user;
-        toggleAuthUI(true);
         await ensureProfileAndSettings(CURRENT_USER);
         await maybeBootstrapCloudFromLocal();
         await loadFromCloud();
-        renderAll();
+        renderAll(); setSigned(true);
+        toast('ok','Вход выполнен');
       }
       if(id==='btnSignUp'){
         const email = $('#authEmail').value.trim();
         const pass = $('#authPass').value;
+        if(!email || !pass){ toast('warn','Нужно заполнить','E-mail и пароль обязательны.'); return; }
         const { error } = await supa.auth.signUp({ email, password: pass });
         if(error) throw error;
-        alert('Аккаунт создан. Проверь почту (если включено подтверждение) и нажми «Войти».');
+        toast('ok','Аккаунт создан','Теперь нажми «Войти».\nЕсли включено подтверждение — проверь почту.');
       }
       if(id==='btnSignOut'){
         await supa.auth.signOut();
         CURRENT_USER = null;
-        toggleAuthUI(false);
+        setSigned(false);
+        toast('ok','Вы вышли из аккаунта');
       }
       if(id==='btnReset'){
         const email = $('#authEmail').value.trim();
-        if(!email) return alert('Укажи email для сброса.');
+        if(!email){ toast('warn','Укажи e-mail для сброса'); return; }
         const { error } = await supa.auth.resetPasswordForEmail(email, {
           redirectTo: location.origin + location.pathname + '#recovery'
         });
         if(error) throw error;
-        alert('Письмо для сброса отправлено. Проверь inbox.');
+        toast('ok','Письмо отправлено','Проверь почту и перейди по ссылке.');
       }
       if(id==='btnSetNewPass'){
         const np = $('#newPass').value;
-        if(np.length < 6) return alert('Минимум 6 символов.');
+        if(!np || np.length<6){ toast('warn','Слабый пароль','Минимум 6 символов.'); return; }
         const { error } = await supa.auth.updateUser({ password: np });
         if(error) throw error;
         $('#pwRecovery').style.display='none';
-        alert('Пароль обновлён. Можешь войти новой парой.');
+        toast('ok','Пароль обновлён','Теперь войдите новой парой.');
       }
-    }catch(err){ alert('Ошибка: ' + err.message); }
+    }catch(err){
+      const msg = (err && (err.message || err.error_description)) || String(err);
+      if(/Failed to fetch/i.test(msg)){
+        toast('err','Нет связи с Supabase','Проверь URL проекта, CORS (Auth → URL Configuration / Redirect URLs), интернет и ключ ANON.');
+      }else{
+        toast('err','Ошибка', msg);
+      }
+    }
   });
 
-  // ловим события auth, в т.ч. PASSWORD_RECOVERY
+  /* ---- Auth state ---- */
   supa.auth.onAuthStateChange(async (event, session)=>{
     CURRENT_USER = session?.user || null;
     if(event === 'PASSWORD_RECOVERY'){
-      // показываем форму нового пароля
       $('#pwRecovery').style.display = 'block';
-      $('#authCard').classList.remove('auth-hidden');
+      setSigned(false);
+      return;
     }
-    toggleAuthUI(!!CURRENT_USER && event!=='PASSWORD_RECOVERY');
-    if(CURRENT_USER && event!=='PASSWORD_RECOVERY'){
-      await ensureProfileAndSettings(CURRENT_USER);
-      await loadFromCloud();
-      renderAll();
+    setSigned(!!CURRENT_USER);
+    if(CURRENT_USER){
+      try{
+        await ensureProfileAndSettings(CURRENT_USER);
+        await loadFromCloud();
+        renderAll();
+      }catch(err){
+        toast('err','Ошибка загрузки', err.message||String(err));
+      }
     }
   });
 
@@ -742,7 +797,7 @@ input[type="month"]::-webkit-date-and-time-value{ text-align:left }
     const amount = Number($('#incAmount').value||0);
     const category = ($('#incCategory').value||'Доход');
     const note = ($('#incNote').value||'');
-    if(amount<=0) return alert('Введите сумму дохода > 0');
+    if(amount<=0) return toast('warn','Проверьте данные','Введите сумму дохода > 0');
 
     const split = incomeSplit(amount);
     const txs = [];
@@ -768,7 +823,7 @@ input[type="month"]::-webkit-date-and-time-value{ text-align:left }
     const account = $('#expAcc').value;
     const category = ($('#expCategory').value||'Расход');
     const note = ($('#expNote').value||'');
-    if(amount<=0) return alert('Введите сумму расхода > 0');
+    if(amount<=0) return toast('warn','Проверьте данные','Введите сумму расхода > 0');
     if(state.settings.accounts[account] < amount && !confirm('На счёте не хватает средств. Продолжить?')) return;
 
     const tx = { id:uid(), date, type:'expense', account, amount, category, note };
@@ -788,8 +843,9 @@ input[type="month"]::-webkit-date-and-time-value{ text-align:left }
     const from = $('#trFrom').value;
     const to = $('#trTo').value;
     const note = ($('#trNote').value||'');
-    if(amount<=0) return alert('Введите сумму перевода > 0');
-    if(from===to) return alert('Выберите разные счета');
+    if(amount<=0) return toast('warn','Проверьте данные','Введите сумму перевода > 0');
+    if(from===to) return toast('warn','Некорректные счета','Выберите разные счета.');
+
     if(state.settings.accounts[from] < amount && !confirm('На счёте-источнике не хватает средств. Продолжить?')) return;
 
     const tx = { id:uid(), date, type:'transfer', fromAccount:from, toAccount:to, amount, category:'Перевод', note };
@@ -809,7 +865,7 @@ input[type="month"]::-webkit-date-and-time-value{ text-align:left }
     const amount = Number($('#debtPayAmount').value||0);
     const from = $('#debtFrom').value;
     const note = ($('#debtNote').value||'');
-    if(amount<=0) return alert('Введите сумму платежа > 0');
+    if(amount<=0) return toast('warn','Проверьте данные','Введите сумму платежа > 0');
 
     const tx = { id:uid(), date, type:'debt', amount, account: from || undefined, category:'Платёж по долгу', note };
     state.transactions.push(tx);
@@ -857,11 +913,11 @@ input[type="month"]::-webkit-date-and-time-value{ text-align:left }
     state.settings.monthStartDay = clamp(Number($('#stMonthStart').value||1),1,28);
 
     const sum = Object.values(state.settings.autosplit).reduce((s,n)=>s+Number(n||0),0);
-    if(sum!==100) return alert('Сумма долей должна быть 100%.');
+    if(sum!==100) return toast('warn','Доли не сходятся','Сумма долей должна быть 100%.');
 
     save(); renderAll();
     await saveSettingsToCloud();
-    alert('Настройки сохранены.');
+    toast('ok','Настройки сохранены');
   };
 
   $('#btnFillDemo').onclick = async () => {
@@ -896,15 +952,16 @@ input[type="month"]::-webkit-date-and-time-value{ text-align:left }
       }, { onConflict:'user_id' });
       for(const t of state.transactions) await upsertTxToCloud(t);
     }
+    toast('ok','Демо-данные загружены');
   };
-  function isoShift(days){ const d=new Date(); d.setDate(d.getDate()+days); return d.toISOString().slice(0,10); }
+  function isoShift(дней){ const d=new Дате(); d.setDate(d.getDate()+дней); return d.toISOString().slice(0,10); }
 
   // ---- Экспорт/Импорт/Wipe ----
   $('#btnExport').onclick = () => {
     const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `dm_fin_${new Date().toISOString().slice(0,10)}.json`;
+    a.download = `dm_fin_${new Дате().toISOString().slice(0,10)}.json`;
     a.click(); URL.revokeObjectURL(a.href);
   };
   $('#btnImport').onclick = () => $('#fileImport').click();
@@ -919,8 +976,8 @@ input[type="month"]::-webkit-date-and-time-value{ text-align:left }
         for(const t of state.transactions) await upsertTxToCloud(t);
         await saveSettingsToCloud();
       }
-      alert('Импорт выполнен.');
-    }catch(err){ alert('Ошибка импорта: ' + err.message); }
+      toast('ok','Импорт выполнен');
+    }catch(err){ toast('err','Ошибка импорта', err.message); }
     finally{ e.target.value=''; }
   };
   $('#btnWipe').onclick = async () => {
@@ -931,6 +988,7 @@ input[type="month"]::-webkit-date-and-time-value{ text-align:left }
       await supa.from('transactions').delete().eq('user_id', CURRENT_USER.id);
       await supa.from('settings').delete().eq('user_id', CURRENT_USER.id);
     }
+    toast('ok','Данные очищены');
   };
 
   // ---- Главный рендер ----
