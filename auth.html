@@ -74,6 +74,90 @@ footer{margin-top:14px; text-align:center; color:#6b7280; font-size:var(--fs-sm)
 </style>
 </head>
 
+
+
+<!-- ===== Динамический фон: мягкие сферы + параллакс ===== -->
+<style>
+:root{ --mx:50%; --my:50%; }
+.bg-orbs{
+  position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden;
+  background:
+    radial-gradient(1800px 1200px at var(--mx) var(--my),
+      rgba(45,108,223,.10), transparent 60%),
+    radial-gradient(1200px 800px at calc(100% - var(--mx)) calc(100% - var(--my)),
+      rgba(139,92,246,.10), transparent 62%),
+    linear-gradient(180deg,#f7f8fc 0%,#f5f7fb 100%);
+  filter:saturate(105%);
+}
+.bg-orbs::before,
+.bg-orbs::after{
+  content:""; position:absolute; width:48vmax; height:48vmax;
+  border-radius:50%; filter:blur(40px); opacity:.55;
+  transform:translate(-20%,-20%);
+  animation:orb-drift 22s ease-in-out infinite alternate;
+}
+.bg-orbs::before{
+  left:10%; top:12%;
+  background:radial-gradient(circle at 30% 30%,rgba(45,108,223,.55),rgba(45,108,223,0) 60%);
+  animation-delay:0s;
+}
+.bg-orbs::after{
+  right:-10%; bottom:-8%;
+  background:radial-gradient(circle at 70% 70%,rgba(139,92,246,.45),rgba(139,92,246,0) 60%);
+  animation-delay:.6s;
+}
+.bg-orbs>i{
+  position:absolute; inset:-20% -10% -30% -10%; display:block; content:"";
+  background:conic-gradient(from 0deg at 50% 50%,
+    transparent 0 20%,rgba(255,255,255,.35) 20% 26%,
+    transparent 26% 48%,rgba(45,108,223,.10) 48% 52%,
+    transparent 52% 74%,rgba(139,92,246,.12) 74% 78%,transparent 78% 100%);
+  mix-blend-mode:soft-light; filter:blur(30px); opacity:.35;
+  animation:orb-spin 40s linear infinite;
+}
+@keyframes orb-drift{
+  0%{transform:translate(-20%,-20%) scale(1)}
+  50%{transform:translate(10%,0) scale(1.06)}
+  100%{transform:translate(-5%,20%) scale(1.02)}
+}
+@keyframes orb-spin{по{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){
+  .bg-orbs,.bg-orbs::before,.bg-orbs::after,.bg-orbs>i{animation:none!important}
+}
+@media(max-width:640px){
+  .bg-orbs::before,.bg-orbs::after{width:62vmin;height:62vmin}
+  .bg-orbs>i{opacity:.28}
+}
+</style>
+
+<div class="bg-orbs" aria-hidden="true"></div>
+
+<script>
+(function(){
+  const root=document.documentElement;
+  const bg=document.querySelector(".bg-orbs");
+  if(!bg)return;
+  if(!bg.querySelector("i"))bg.appendChild(document.createElement("i"));
+  const set=(x,y)=>{
+    const mx=Math.max(0,Math.min(100,x*100));
+    const my=Math.max(0,Math.min(100,y*100));
+    root.style.setProperty("--mx",mx+"%");
+    root.style.setProperty("--my",my+"%");
+  };
+  let raf=0,tx=.5,ty=.5,_x=.5,_y=.5;
+  const loop=()=>{tx+=( _x-tx)*.08; ty+=( _y-ty)*.08; set(tx,ty); raf=requestAnimationFrame(loop);};
+  loop();
+  const onMove=(cx,cy)=>{const w=innerWidth||1,h=innerHeight||1;_x=cx/w;_y=cy/h;};
+  addEventListener("mousemove",e=>onMove(e.clientX,e.clientY),{passive:true});
+  addEventListener("touchmove",e=>{const t=e.touches&&e.touches[0];if(t)onMove(t.clientX,t.clientY);},{passive:true});
+  addEventListener("beforeunload",()=>cancelAnimationFrame(raf));
+})();
+</script>
+<!-- ===== /Динамический фон ===== -->
+
+
+
+  
 <body>
 <div class="wrap">
   <div class="card">
