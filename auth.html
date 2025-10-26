@@ -56,13 +56,6 @@ button.ghost{background:#fff; border-color:var(--line); color:#1f1f1f;}
 footer{margin-top:14px; text-align:center; color:var(--muted); font-size:var(--fs-sm);}
 .hidden{display:none!important}
 
-/* NEW: блок уведомления о подтверждении */
-.notice{
-  padding:12px; border:1px dashed #9ec1ff; background:#f5f9ff; border-radius:10px;
-  color:#1f3b7a; font-size:var(--fs-sm); margin-bottom:12px;
-}
-.notice .row{display:flex; gap:8px; margin-top:8px; flex-wrap:wrap}
-.notice .row button{min-height:38px; padding:8px 10px}
 @media (max-width:420px){ .card{padding:18px 16px; margin:0 auto;} .tabs{gap:6px} .tab{padding:7px 10px} }
 </style>
 </head>
@@ -79,17 +72,7 @@ footer{margin-top:14px; text-align:center; color:var(--muted); font-size:var(--f
 
     <div id="msg" class="alert hidden"></div>
 
-    <!-- NEW: уведомление о неподтверждённой почте -->
-    <div id="confirmNotice" class="notice hidden">
-      <div><b>Подтверди почту</b>, чтобы завершить регистрацию. Мы отправили письмо на <span id="cnEmail"></span>.</div>
-      <div class="row">
-        <button id="btnResend" class="ghost" type="button">Отправить письмо ещё раз</button>
-        <button id="btnOpenAuth" class="primary" type="button">Я подтвердил — войти</button>
-      </div>
-      <div class="help">После клика по ссылке в письме ты попадёшь на эту страницу, и вход завершится автоматически.</div>
-    </div>
-
-    <!-- форма входа -->
+    <!-- вход -->
     <form id="login" autocomplete="on">
       <label>Email <input type="email" id="login-email" placeholder="you@example.com" required></label>
       <label>Пароль <input type="password" id="login-pass" placeholder="••••••••" minlength="6" required></label>
@@ -101,7 +84,7 @@ footer{margin-top:14px; text-align:center; color:var(--muted); font-size:var(--f
       <div class="help center">Забыли пароль? Пришлём ссылку на почту.</div>
     </form>
 
-    <!-- форма регистрации -->
+    <!-- регистрация -->
     <form id="signup" class="hidden" autocomplete="on">
       <label>Email <input type="email" id="signup-email" placeholder="you@example.com" required></label>
       <label>Пароль <input type="password" id="signup-pass" placeholder="минимум 6 символов" minlength="6" required></label>
@@ -135,7 +118,8 @@ const INDEX_URL = "https://orangang.github.io/Personal-Money-Tracker-2.0/index.h
 /* === Утилиты === */
 const $ = (s, r=document) => r.querySelector(s);
 const msg = $("#msg");
-function show(type, text){ msg.className = "alert " + (type||""); msg.textContent = text; msg.classList.remove("hidden"); }
+// позволим <br> в сообщениях (контент вставляем только свой, безопасно)
+function show(type, html){ msg.className = "alert " + (type||""); msg.innerHTML = html; msg.classList.remove("hidden"); }
 function hideMsg(){ msg.classList.add("hidden"); }
 function getParam(name){ return new URL(location.href).searchParams.get(name); }
 
@@ -146,8 +130,6 @@ const frmLogin = $("#login");
 const frmSignup = $("#signup");
 const recovery = $("#recovery");
 const authTitle = $("#authTitle");
-const confirmNotice = $("#confirmNotice");
-const cnEmail = $("#cnEmail");
 
 tabLogin.onclick = () => {
   tabLogin.setAttribute("aria-selected","true");
@@ -157,7 +139,6 @@ tabLogin.onclick = () => {
   recovery.classList.add("hidden");
   authTitle.textContent = "Вход";
   hideMsg();
-  confirmNotice.classList.add("hidden");
 };
 tabSignup.onclick = () => {
   tabSignup.setAttribute("aria-selected","true");
@@ -167,7 +148,6 @@ tabSignup.onclick = () => {
   recovery.classList.add("hidden");
   authTitle.textContent = "Регистрация";
   hideMsg();
-  confirmNotice.classList.add("hidden");
 };
 
 /* === Префилл после регистрации === */
@@ -176,13 +156,23 @@ function saveCred(email, pass){ try{ sessionStorage.setItem(CRED_KEY, JSON.strin
 function readCred(){ try{ return JSON.parse(sessionStorage.getItem(CRED_KEY)||"null"); }catch(e){ return null; } }
 function clearCred(){ try{ sessionStorage.removeItem(CRED_KEY); }catch(e){} }
 
-/* Если авторизован — в трекер */
+/* Если уже авторизован — в трекер */
 (async () => {
   const { data: { session } } = await supabase.auth.getSession();
   if(session && session.user){
     localStorage.setItem("dm_user_id", session.user.id);
     location.href = INDEX_URL;
   }
+})();
+
+/* Попытка выйти из iframe почтового клиента (где возможно) */
+(function(){
+  try{
+    if (window.top !== window.self) {
+      // если разрешено, откроет страницу вне почтового фрейма
+      window.top.location.href = window.location.href;
+    }
+  }catch(e){}
 })();
 
 /* === ОБМЕН КОДА ПОСЛЕ ПОДТВЕРЖДЕНИЯ === */
@@ -204,7 +194,6 @@ function clearCred(){ try{ sessionStorage.removeItem(CRED_KEY); }catch(e){} }
   if(cred){
     $("#login-email").value = cred.email || "";
     $("#login-pass").value = cred.pass || "";
-    cnEmail.textContent = cred.email || "";
     tabLogin.onclick();
   }
 })();
@@ -215,20 +204,18 @@ frmSignup.addEventListener("submit", async (e) => {
   const email = $("#signup-email").value.trim();
   const password = $("#signup-pass").value.trim();
   try {
-    saveCred(email, password); // чтобы префиллить вход
+    saveCred(email, password);
     const { error } = await supabase.auth.signUp({
       email, password,
-      options:{ emailRedirectTo: AUTH_URL } // ключевой момент!
+      options:{ emailRedirectTo: AUTH_URL }
     });
     if(error) throw error;
 
-    // Показываем явное уведомление, префиллируем форму входа
+    // Переключаемся на "Вход", префиллим поля и показываем 2 строки сообщения
+    tabLogin.onclick();
     $("#login-email").value = email;
     $("#login-pass").value = password;
-    cnEmail.textContent = email;
-    tabLogin.onclick();
-    confirmNotice.classList.remove("hidden");
-    show("ok","Мы отправили письмо с подтверждением. Открой его и кликни по ссылке.");
+    show("ok", "Мы отправили письмо с подтверждением.<br>Открой письмо и кликни по ссылке.");
   } catch(err){ show("err","Ошибка регистрации: " + err.message); }
 });
 
@@ -246,14 +233,11 @@ frmLogin.addEventListener("submit", async (e) => {
     clearCred();
     location.href = INDEX_URL;
   } catch(err){
-    const msgText = (err && err.message) ? String(err.message) : "Ошибка входа";
-    if (/email not confirmed/i.test(msgText)) {
-      // NEW: показываем блок подтверждения с ресендом
-      cnEmail.textContent = $("#login-email").value.trim();
-      confirmNotice.classList.remove("hidden");
-      show("err","Email not confirmed — проверь почту и подтверди.");
+    const t = (err && err.message) ? String(err.message) : "Ошибка входа";
+    if (/email not confirmed/i.test(t)) {
+      show("err","Email not confirmed. Сначала подтверди почту в письме.");
     } else {
-      show("err","Ошибка входа: " + msgText);
+      show("err","Ошибка входа: " + t);
     }
   }
 });
@@ -269,29 +253,6 @@ $("#btnReset").onclick = async () => {
     if(error) throw error;
     show("ok","Ссылка на смену пароля отправлена на " + email);
   }catch(err){ show("err","Не удалось отправить письмо: " + err.message); }
-};
-
-/* === Кнопки уведомления === */
-// Отправить письмо ещё раз
-$("#btnResend").onclick = async () => {
-  hideMsg();
-  let email = $("#login-email").value.trim();
-  if(!email){
-    const c = readCred(); email = c && c.email ? c.email : "";
-  }
-  if(!email) return show("", "Укажи email в форме входа.");
-  try{
-    const { error } = await supabase.auth.resend({ type:"signup", email, options:{ emailRedirectTo: AUTH_URL }});
-    if(error) throw error;
-    show("ok","Письмо повторно отправлено на " + email);
-  }catch(err){ show("err","Не удалось отправить: " + err.message); }
-};
-// «Я подтвердил — войти» (просто перезагрузим auth.html — если линк уже кликнут, сессия подтянется и перекинем в INDEX)
-$("#btnOpenAuth").onclick = async () => {
-  hideMsg();
-  const { data: { session } } = await supabase.auth.getSession();
-  if(session && session.user){ location.href = INDEX_URL; }
-  else { location.href = AUTH_URL; } // обновим страницу; если кликали письмо — придёт ?code=... и произойдёт обмен
 };
 
 /* === Экран восстановления === */
@@ -322,7 +283,7 @@ $("#btnSetNew").onclick = async () => {
   }catch(err){ show("err","Ошибка обновления пароля: " + err.message); }
 };
 
-/* === Создание строки пользователя в БД === */
+/* === Создание / обновление строки пользователя === */
 async function ensureUserRow(userId, email){
   try{
     const { data: rows, error: selErr } = await supabase
@@ -333,12 +294,13 @@ async function ensureUserRow(userId, email){
         .from("users_fintracker").insert({ user_id: userId, email: email||null, data: {} });
       if(insErr) throw insErr;
     } else {
-      await supabase.from("users_fintracker").update({ email: email||null }).eq("user_id", userId);
+      await supabase.from("users_fintracker")
+        .update({ email: email||null }).eq("user_id", userId);
     }
   }catch(err){ console.warn("ensureUserRow:", err.message); }
 }
 
-/* === Синхронизация === */
+/* === onAuth === */
 supabase.auth.onAuthStateChange((_event, session) => {
   if(session && session.user) localStorage.setItem("dm_user_id", session.user.id);
 });
