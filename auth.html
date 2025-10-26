@@ -11,6 +11,7 @@
   --accent:#2d6cdf; --accent-100:#eef3ff; --radius:14px; --shadow:0 10px 30px rgba(0,0,0,.06);
   --fs-base:clamp(14px,1.2vw,16px); --fs-sm:clamp(12px,1.1vw,14px);
 }
+/* base */
 *{box-sizing:border-box}
 html,body{height:100%}
 body{
@@ -19,15 +20,33 @@ body{
 }
 a{color:var(--accent); text-decoration:none}
 a:hover{text-decoration:underline}
+
+/* центровка формы */
 .wrap{min-height:100vh; min-height:100dvh; display:flex; align-items:center; justify-content:center; padding:20px;}
-.card{width:min(480px,94vw); background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:22px 20px; margin:0 auto;}
+/* карточка */
+.card{
+  width:min(480px,94vw);
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:22px 20px;
+  margin:0 auto;
+}
+/* заголовок */
 header{display:block; margin-bottom:18px}
 h1{margin:0; text-align:center; font-size:clamp(18px,2.4vw,22px); font-weight:700;}
+
+/* табы */
 .tabs{display:flex; gap:8px; margin:8px 0 14px}
 .tab{flex:1; text-align:center; border:1px solid var(--line); border-radius:10px; padding:8px 12px; cursor:pointer; user-select:none; font-weight:600;}
 .tab[aria-selected="true"]{border-color:#2d6cdf; background:#2d6cdf; color:#fff;}
+
+/* инпуты/подписи */
 label{font-size:var(--fs-sm); color:var(--muted); display:flex; flex-direction:column; gap:8px; margin-bottom:10px;}
 input{width:100%; min-height:42px; padding:10px 12px; border:1px solid var(--line); border-radius:10px; font:inherit;}
+
+/* кнопки */
 button{border-radius:10px; border:1px solid #d4e1ff; background:#eaf1ff; color:#1f4fbf; font-weight:700; cursor:pointer; transition:border-color .2s,background .2s;}
 button.primary{border-color:#2d6cdf; background:#2d6cdf; color:#fff;}
 button.ghost{background:#fff; border-color:var(--line); color:#1f1f1f;}
@@ -35,9 +54,13 @@ button.ghost{background:#fff; border-color:var(--line); color:#1f1f1f;}
 .actions.two button{ flex:1 1 0; min-height:42px; padding:10px 12px; }
 .actions.single{ margin-top:12px; }
 .actions.single button{ width:100%; min-height:42px; padding:10px 12px; }
+
+/* разделители */
 .form-hr{width:100%; height:1px; background:var(--line); margin:14px auto 0;}
 .form-hr.login{  margin:18px auto 0; }
 .form-hr.signup{ margin:14px auto 0; }
+
+/* подсказки и алерты */
 .help{color:var(--muted); font-size:var(--fs-sm); text-align:left; margin-top:8px}
 .help.center{text-align:center; margin-top:12px;}
 .alert{padding:10px 12px; border:1px solid #e5e7eb; background:#f9fafb; border-radius:10px; font-size:var(--fs-sm); color:#374151;}
@@ -45,6 +68,8 @@ button.ghost{background:#fff; border-color:var(--line); color:#1f1f1f;}
 .alert.err{border-color:#ffd6d6; background:#fff1f1; color:#991b1b}
 footer{margin-top:14px; text-align:center; color:var(--muted); font-size:var(--fs-sm);}
 .hidden{display:none!important}
+
+/* адаптив */
 @media (max-width:420px){
   .card{padding:18px 16px; margin:0 auto;}
   .tabs{gap:6px}
@@ -67,8 +92,14 @@ footer{margin-top:14px; text-align:center; color:var(--muted); font-size:var(--f
 
     <!-- форма входа -->
     <form id="login" autocomplete="on">
-      <label>Email <input type="email" id="login-email" placeholder="you@example.com" required></label>
-      <label>Пароль <input type="password" id="login-pass" placeholder="••••••••" minlength="6" required></label>
+      <label>Email
+        <input type="email" id="login-email" placeholder="you@example.com" required
+               autocomplete="username" name="username">
+      </label>
+      <label>Пароль
+        <input type="password" id="login-pass" placeholder="••••••••" minlength="6" required
+               autocomplete="current-password" name="current-password">
+      </label>
       <div class="actions two">
         <button type="submit" class="primary" id="btnLogin">Войти</button>
         <button type="button" class="ghost" id="btnReset">Сбросить пароль</button>
@@ -79,8 +110,14 @@ footer{margin-top:14px; text-align:center; color:var(--muted); font-size:var(--f
 
     <!-- форма регистрации -->
     <form id="signup" class="hidden" autocomplete="on">
-      <label>Email <input type="email" id="signup-email" placeholder="you@example.com" required></label>
-      <label>Пароль <input type="password" id="signup-pass" placeholder="минимум 6 символов" minlength="6" required></label>
+      <label>Email
+        <input type="email" id="signup-email" placeholder="you@example.com" required
+               autocomplete="username" name="username">
+      </label>
+      <label>Пароль
+        <input type="password" id="signup-pass" placeholder="минимум 6 символов" minlength="6" required
+               autocomplete="new-password" name="new-password">
+      </label>
       <div class="actions single">
         <button type="submit" class="primary" id="btnSignup">Создать аккаунт</button>
       </div>
@@ -90,7 +127,10 @@ footer{margin-top:14px; text-align:center; color:var(--muted); font-size:var(--f
     <!-- восстановление пароля -->
     <div id="recovery" class="hidden">
       <div class="alert">Введите новый пароль для аккаунта <b id="rec-email"></b></div>
-      <label>Новый пароль <input type="password" id="rec-pass" minlength="6" required></label>
+      <label>Новый пароль
+        <input type="password" id="rec-pass" minlength="6" required
+               autocomplete="new-password" name="new-password">
+      </label>
       <div class="actions single"><button class="primary" id="btnSetNew">Обновить пароль</button></div>
     </div>
 
@@ -100,24 +140,24 @@ footer{margin-top:14px; text-align:center; color:var(--muted); font-size:var(--f
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-/* --- Конфиг Supabase --- */
+/* =========================
+   Supabase + конфиг URL’ов
+   ========================= */
 const SUPABASE_URL = "https://hxbrvnwukieluzlffgyr.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh4YnJ2bnd1a2llbHV6bGZmZ3lyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE0NTM1NDMsImV4cCI6MjA3NzAyOTU0M30.IWViKSutxlXo1R3DqArijjeseK6nQ9m55ZPe5EUToLQ";
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-/* URL’ы приложения */
 const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.html";
 const INDEX_URL = "https://orangang.github.io/Personal-Money-Tracker-2.0/index.html";
 
-/* Утилиты */
+/* =========================
+   Вспомогалки (UI + storage)
+   ========================= */
 const $ = (s, r=document) => r.querySelector(s);
 const msg = $("#msg");
 function show(type, text){ msg.className = "alert " + (type||""); msg.textContent = text; msg.classList.remove("hidden"); }
 function hideMsg(){ msg.classList.add("hidden"); }
-function switchToLogin(){ tabLogin.click(); }
-function switchToSignup(){ tabSignup.click(); }
 
-/* Таб-кнопки/формы */
 const tabLogin = $("#tab-login");
 const tabSignup = $("#tab-signup");
 const frmLogin = $("#login");
@@ -144,6 +184,27 @@ tabSignup.onclick = () => {
   hideMsg();
 };
 
+/* === Одноразовое локальное сохранение email/password ===
+   Храним в localStorage с TTL 24 часа, очищаем после логина */
+const PENDING_KEY = "dm_pending_creds";
+const PENDING_TTL_MS = 24*60*60*1000; // 24 часа
+
+function savePending(email, pass){
+  try{
+    localStorage.setItem(PENDING_KEY, JSON.stringify({email, pass, ts: Date.now()}));
+  }catch(e){}
+}
+function readPending(){
+  try{
+    const raw = localStorage.getItem(PENDING_KEY);
+    if(!raw) return null;
+    const obj = JSON.parse(raw);
+    if(!obj || !obj.ts || (Date.now()-obj.ts)>PENDING_TTL_MS){ clearPending(); return null; }
+    return obj;
+  }catch(e){ return null; }
+}
+function clearPending(){ try{ localStorage.removeItem(PENDING_KEY); }catch(e){} }
+
 /* Если уже авторизован — сразу в трекер */
 (async () => {
   const { data: { session } } = await supabase.auth.getSession();
@@ -153,31 +214,29 @@ tabSignup.onclick = () => {
   }
 })();
 
-/* Регистрация с явным редиректом и сохранением одноразовых данных */
+/* Регистрация: сохраняем в localStorage и задаём emailRedirectTo */
 frmSignup.addEventListener("submit", async (e) => {
   e.preventDefault(); hideMsg();
   const email = $("#signup-email").value.trim();
   const password = $("#signup-pass").value.trim();
   try {
-    // 1) сохраним «ожидающие» данные в sessionStorage (живут до закрытия вкладки)
-    sessionStorage.setItem("dm_pending_email", email);
-    sessionStorage.setItem("dm_pending_pass", password);
+    // 1) Сохраняем для будущей авто-подстановки/входа.
+    savePending(email, password);
 
-    // 2) отправим регистрацию с корректным редиректом обратно на auth.html
+    // 2) Регистрируем с корректным редиректом
     const { data, error } = await supabase.auth.signUp({
       email, password,
-      options:{ emailRedirectTo: AUTH_URL + "#confirm" } // <- ключевой момент
+      options:{ emailRedirectTo: AUTH_URL + "#confirm" }
     });
     if(error) throw error;
 
-    // 3) подсказка пользователю
-    show("ok","Аккаунт создан. Проверьте почту и подтвердите адрес — затем вернитесь сюда.");
+    show("ok","Аккаунт создан. Подтвердите email в письме, затем вернитесь сюда.");
   } catch(err){
     show("err","Ошибка регистрации: " + err.message);
   }
 });
 
-/* Вход */
+/* Вход: стандартный */
 frmLogin.addEventListener("submit", async (e) => {
   e.preventDefault(); hideMsg();
   const email = $("#login-email").value.trim();
@@ -188,14 +247,12 @@ frmLogin.addEventListener("submit", async (e) => {
     const user = data.user;
     localStorage.setItem("dm_user_id", user.id);
     await ensureUserRow(user.id, user.email);
-    // очистим одноразовые
-    sessionStorage.removeItem("dm_pending_email");
-    sessionStorage.removeItem("dm_pending_pass");
+    clearPending();
     location.href = INDEX_URL;
   } catch(err){ show("err","Ошибка входа: " + err.message); }
 });
 
-/* Сброс пароля */
+/* Сброс пароля с редиректом на наш экран */
 $("#btnReset").onclick = async () => {
   hideMsg();
   const email = $("#login-email").value.trim();
@@ -208,7 +265,7 @@ $("#btnReset").onclick = async () => {
   }catch(err){ show("err","Не удалось отправить письмо: " + err.message); }
 };
 
-/* Экран восстановления пароля (после redirectTo из письма) */
+/* Экран восстановления пароля */
 async function handleRecovery(){
   if(location.hash !== "#recovery") return;
   hideMsg();
@@ -237,42 +294,44 @@ $("#btnSetNew").onclick = async () => {
   }catch(err){ show("err","Ошибка обновления пароля: " + err.message); }
 };
 
-/* Поток подтверждения почты: #confirm */
+/* Поток подтверждения: #confirm → авто-подстановка и авто-вход */
 async function handleConfirmFlow(){
   if(location.hash !== "#confirm") return;
-  // Переключаем на «Вход»
-  switchToLogin();
+  tabLogin.click();
   authTitle.textContent = "Вход";
-  // Сообщим пользователю
-  show("ok","Email подтверждён. Выполняем вход…");
+  show("ok","Email подтверждён. Проверяем данные…");
 
-  // Попробуем автоматический вход, если сохранили данные до подтверждения
-  const email = sessionStorage.getItem("dm_pending_email");
-  const pass  = sessionStorage.getItem("dm_pending_pass");
-
-  if(email){ $("#login-email").value = email; }
-  if(pass){  $("#login-pass").value  = pass;  }
-
-  if(email && pass){
+  const pending = readPending();
+  if(pending){
+    $("#login-email").value = pending.email || "";
+    $("#login-pass").value  = pending.pass  || "";
     try{
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
+      const { data, error } = await supabase.auth.signInWithPassword({ email: pending.email, password: pending.pass });
       if(error) throw error;
       const user = data.user;
       localStorage.setItem("dm_user_id", user.id);
       await ensureUserRow(user.id, user.email);
-      sessionStorage.removeItem("dm_pending_email");
-      sessionStorage.removeItem("dm_pending_pass");
+      clearPending();
       location.href = INDEX_URL;
       return;
     }catch(err){
-      // если автоматический вход не удался — просто покажем поля с заполненными данными
-      show("","Подтверждение прошло. Проверьте пароль и нажмите «Войти».");
+      show("", "Подтверждение прошло. Проверьте пароль и нажмите «Войти».");
     }
-  } else {
-    show("","Подтверждение прошло. Введите пароль и войдите.");
+  }else{
+    show("", "Подтверждение прошло. Введите пароль и нажмите «Войти».");
   }
 }
 handleConfirmFlow();
+
+/* На всякий случай — если пользователь вернулся без #confirm,
+   но данные ещё валидны, подставим их в форму входа */
+(function prefillLoginFromPending(){
+  const pending = readPending();
+  if(pending){
+    if(!$("#login-email").value) $("#login-email").value = pending.email || "";
+    if(!$("#login-pass").value)  $("#login-pass").value  = pending.pass  || "";
+  }
+})();
 
 /* Создание/обновление строки пользователя в БД */
 async function ensureUserRow(userId, email){
@@ -285,13 +344,12 @@ async function ensureUserRow(userId, email){
         .from("users_fintracker").insert({ user_id: userId, email: email||null, data: {} });
       if(insErr) throw insErr;
     } else {
-      await supabase.from("users_fintracker")
-        .update({ email: email||null }).eq("user_id", userId);
+      await supabase.from("users_fintracker").update({ email: email||null }).eq("user_id", userId);
     }
   }catch(err){ console.warn("ensureUserRow:", err.message); }
 }
 
-/* Подхватим смену состояния (на всякий) */
+/* Сервисный хук — запомним user_id при любых изменениях */
 supabase.auth.onAuthStateChange((_event, session) => {
   if(session && session.user) localStorage.setItem("dm_user_id", session.user.id);
 });
