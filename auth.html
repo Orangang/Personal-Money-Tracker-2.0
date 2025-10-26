@@ -1,28 +1,35 @@
-
 <!doctype html>
 <html lang="ru">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Вход / Регистрация — Dmitry Money Tracker</title>
 <link rel="shortcut icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64'><text y='50%' x='50%' dominant-baseline='middle' text-anchor='middle' font-size='42'>₽</text></svg>">
 <style>
-:root{--bg:#f6f7fb;--card:#ffffff;--ink:#111;--muted:#6b7280;--line:#e5e7eb;--accent:#2d6cdf;--accent-100:#eef3ff;--radius:14px;--shadow:0 10px 30px rgba(0,0,0,.06);--fs-base:clamp(14px, 1.2vw, 16px);--fs-sm:clamp(12px, 1.1vw, 14px);}
-*{box-sizing:border-box}html,body{height:100%}body{margin:0;background:var(--bg);color:var(--ink);font:400 var(--fs-base)/1.45 "SF Pro Display",-apple-system,system-ui,Segoe UI,Roboto,Inter,Arial,sans-serif}
+:root{--bg:#f6f7fb;--card:#ffffff;--ink:#111;--muted:#6b7280;--line:#e5e7eb;--accent:#2d6cdf;--accent-100:#eef3ff;--radius:14px;--shadow:0 10px 30px rgba(0,0,0,.06);--fs-base:clamp(14px,1.2vw,16px);--fs-sm:clamp(12px,1.1vw,14px)}
+*{box-sizing:border-box}html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 var(--fs-base)/1.45 "SF Pro Display",-apple-system,system-ui,Segoe UI,Roboto,Inter,Arial,sans-serif}
 a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
 .wrap{min-height:100%;display:grid;place-items:center;padding:20px}
 .card{width:min(560px,94vw);background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px 20px}
 header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
 h1{margin:0;font-size:clamp(18px,2.5vw,24px);font-weight:700}
 .badge{font-size:var(--fs-sm);padding:4px 10px;border-radius:999px;background:var(--accent-100);border:1px solid #dbe7ff;color:#1f4fbf}
-.tabs{display:flex;gap:8px;margin:10px 0 16px}.tab{flex:1;text-align:center;border:1px solid var(--line);border-radius:10px;padding:10px 14px;cursor:pointer;user-select:none}.tab[aria-selected="true"]{border-color:#2d6cdf;background:#2d6cdf;color:#fff}
+.tabs{display:flex;gap:8px;margin:10px 0 16px}
+.tab{flex:1;text-align:center;border:1px solid var(--line);border-radius:10px;padding:10px 14px;cursor:pointer;user-select:none}
+.tab[aria-selected="true"]{border-color:#2d6cdf;background:#2d6cdf;color:#fff}
 label{font-size:var(--fs-sm);color:var(--muted);display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
 input{width:100%;min-height:48px;padding:12px 14px;border:1px solid var(--line);border-radius:10px;font:inherit}
 .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
-button{min-height:44px;padding:10px 16px;border-radius:10px;border:1px solid #d4e1ff;background:#eaf1ff;color:#1f4fbf;font-weight:700;cursor:pointer}button.primary{border-color:#2d6cdf;background:#2d6cdf;color:#fff}button.ghost{background:#fff;border-color:var(--line);color:#1f1f1f}
-.help{color:var(--muted);font-size:var(--fs-sm)}.hr{height:1px;background:var(--line);margin:12px 0}
-.alert{padding:10px 12px;border:1px solid #e5e7eb;background:#f9fafb;border-radius:10px;font-size:var(--fs-sm);color:#374151}.alert.ok{border-color:#c6f1d3;background:#ecfdf5;color:#065f46}.alert.err{border-color:#ffd6d6;background:#fff1f1;color:#991b1b}
-footer{margin-top:16px;text-align:center;color:var(--muted);font-size:var(--fs-sm)}footer a{color:inherit}footer a:hover{color:var(--accent)}
+button{min-height:44px;padding:10px 16px;border-radius:10px;border:1px solid #d4e1ff;background:#eaf1ff;color:#1f4fbf;font-weight:700;cursor:pointer}
+button.primary{border-color:#2d6cdf;background:#2d6cdf;color:#fff}
+button.ghost{background:#fff;border-color:var(--line);color:#1f1f1f}
+.help{color:var(--muted);font-size:var(--fs-sm)}
+.hr{height:1px;background:var(--line);margin:12px 0}
+.alert{padding:10px 12px;border:1px solid #e5e7eb;background:#f9fafb;border-radius:10px;font-size:var(--fs-sm);color:#374151}
+.alert.ok{border-color:#c6f1d3;background:#ecfdf5;color:#065f46}
+.alert.err{border-color:#ffd6d6;background:#fff1f1;color:#991b1b}
+footer{margin-top:16px;text-align:center;color:var(--muted);font-size:var(--fs-sm)}
 .hidden{display:none!important}
 </style>
 </head>
@@ -67,7 +74,7 @@ footer{margin-top:16px;text-align:center;color:var(--muted);font-size:var(--fs-s
     </div>
 
     <div class="hr"></div>
-    <div class="help">После входа — редирект в <code>index.html</code>. Сессия хранится в Supabase и LocalStorage.</div>
+    <div class="help">После входа — редирект в <code>index.html</code>. Сессия хранится в Supabase и localStorage.</div>
 
     <footer>сделано руками <a href="https://dmitry-design.ru/" target="_blank" rel="noopener">dmitry-design.ru</a></footer>
   </div>
@@ -78,6 +85,9 @@ footer{margin-top:16px;text-align:center;color:var(--muted);font-size:var(--fs-s
 const SUPABASE_URL = "https://hxbrvnwukieluzlffgyr.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh4YnJ2bnd1a2llbHV6bGZmZ3lyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE0NTM1NDMsImV4cCI6MjA3NzAyOTU0M30.IWViKSutxlXo1R3DqArijjeseK6nQ9m55ZPe5EUToLQ";
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.html";
+const INDEX_URL = "https://orangang.github.io/Personal-Money-Tracker-2.0/index.html";
 
 const $ = (s, r=document) => r.querySelector(s);
 const msg = $("#msg");
@@ -93,11 +103,16 @@ const recovery = $("#recovery");
 tabLogin.onclick = () => { tabLogin.setAttribute("aria-selected","true"); tabSignup.setAttribute("aria-selected","false"); frmLogin.classList.remove("hidden"); frmSignup.classList.add("hidden"); recovery.classList.add("hidden"); hideMsg(); };
 tabSignup.onclick = () => { tabSignup.setAttribute("aria-selected","true"); tabLogin.setAttribute("aria-selected","false"); frmSignup.classList.remove("hidden"); frmLogin.classList.add("hidden"); recovery.classList.add("hidden"); hideMsg(); };
 
+// если уже авторизован — в приложение
 (async () => {
   const { data: { session } } = await supabase.auth.getSession();
-  if(session && session.user){ localStorage.setItem("dm_user_id", session.user.id); location.href = "https://orangang.github.io/Personal-Money-Tracker-2.0/index.html"; }
+  if(session && session.user){
+    localStorage.setItem("dm_user_id", session.user.id);
+    location.href = INDEX_URL;
+  }
 })();
 
+// регистрация
 frmSignup.addEventListener("submit", async (e) => {
   e.preventDefault(); hideMsg();
   const email = $("#signup-email").value.trim();
@@ -105,22 +120,21 @@ frmSignup.addEventListener("submit", async (e) => {
   try {
     const { data, error } = await supabase.auth.signUp({ email, password });
     if(error) throw error;
-    show("ok", "Аккаунт создан, проверяем сессию…");
+    show("ok","Аккаунт создан, проверяем сессию…");
     setTimeout(async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if(session && session.user){
         localStorage.setItem("dm_user_id", session.user.id);
         await ensureUserRow(session.user.id, session.user.email);
-        location.href = "https://orangang.github.io/Personal-Money-Tracker-2.0/index.html";
+        location.href = INDEX_URL;
       } else {
         show("", "Проверьте почту для подтверждения и зайдите повторно.");
       }
     }, 700);
-  } catch(err){
-    show("err", "Ошибка регистрации: " + err.message);
-  }
+  } catch(err){ show("err","Ошибка регистрации: " + err.message); }
 });
 
+// вход
 frmLogin.addEventListener("submit", async (e) => {
   e.preventDefault(); hideMsg();
   const email = $("#login-email").value.trim();
@@ -131,32 +145,30 @@ frmLogin.addEventListener("submit", async (e) => {
     const user = data.user;
     localStorage.setItem("dm_user_id", user.id);
     await ensureUserRow(user.id, user.email);
-    location.href = "https://orangang.github.io/Personal-Money-Tracker-2.0/index.html";
-  } catch(err){
-    show("err", "Ошибка входа: " + err.message);
-  }
+    location.href = INDEX_URL;
+  } catch(err){ show("err","Ошибка входа: " + err.message); }
 });
 
+// сброс пароля — ссылка на GitHub Pages
 $("#btnReset").onclick = async () => {
   hideMsg();
   const email = $("#login-email").value.trim();
   if(!email) return show("", "Укажите email и повторите.");
   try{
-    const redirectTo = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.html#recovery";
+    const redirectTo = AUTH_URL + "#recovery";
     const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
     if(error) throw error;
-    show("ok", "Ссылка на смену пароля отправлена на " + email);
-  }catch(err){
-    show("err", "Не удалось отправить письмо: " + err.message);
-  }
+    show("ok","Ссылка на смену пароля отправлена на " + email);
+  }catch(err){ show("err","Не удалось отправить письмо: " + err.message); }
 };
 
+// форма восстановления пароля
 async function handleRecovery(){
   if(location.hash !== "#recovery") return;
   hideMsg();
   const { data: { session } } = await supabase.auth.getSession();
   if(!(session && session.user)){
-    show("err", "Ссылка устарела или недействительна.");
+    show("err","Ссылка устарела или недействительна.");
     return;
   }
   $("#rec-email").textContent = session.user.email || session.user.id;
@@ -172,29 +184,30 @@ $("#btnSetNew").onclick = async () => {
   try{
     const { error } = await supabase.auth.updateUser({ password: pass });
     if(error) throw error;
-    show("ok", "Пароль обновлён. Входим…");
-    setTimeout(()=> location.href = "https://orangang.github.io/Personal-Money-Tracker-2.0/index.html", 600);
-  }catch(err){
-    show("err", "Ошибка обновления пароля: " + err.message);
-  }
+    show("ok","Пароль обновлён. Входим…");
+    setTimeout(()=> location.href = INDEX_URL, 600);
+  }catch(err){ show("err","Ошибка обновления пароля: " + err.message); }
 };
 
+// создаём/обновляем строку пользователя в БД (с email)
 async function ensureUserRow(userId, email){
   try{
-    const { data: rows, error: selErr } = await supabase.from("users_fintracker").select("id").eq("user_id", userId).limit(1);
+    const { data: rows, error: selErr } = await supabase
+      .from("users_fintracker").select("id").eq("user_id", userId).limit(1);
     if(selErr) throw selErr;
     if(!rows || rows.length===0){
-      const { error: insErr } = await supabase.from("users_fintracker").insert({ user_id: userId, email: email||null, data: {} });
+      const { error: insErr } = await supabase
+        .from("users_fintracker").insert({ user_id: userId, email: email||null, data: {} });
       if(insErr) throw insErr;
     } else {
-      await supabase.from("users_fintracker").update({ email: email||null }).eq("user_id", userId);
+      await supabase.from("users_fintracker")
+        .update({ email: email||null })
+        .eq("user_id", userId);
     }
-  }catch(err){
-    console.warn("ensureUserRow:", err.message);
-  }
+  }catch(err){ console.warn("ensureUserRow:", err.message); }
 }
 
-supabase.auth.onAuthStateChange((event, session) => {
+supabase.auth.onAuthStateChange((_event, session) => {
   if(session && session.user) localStorage.setItem("dm_user_id", session.user.id);
 });
 </script>
