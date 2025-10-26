@@ -124,10 +124,34 @@ details.modal > summary::-webkit-details-marker{display:none}
   flex-wrap:wrap; gap:12px; margin-bottom:16px;
 }
 .page-header .info{flex:1 1 auto;}
-.user-panel{display:flex; align-items:center; gap:10px; flex-shrink:0;}
-.user-panel .userpill{font-size:var(--fs-sm); padding:4px 10px; border-radius:999px; background:#f2f6ff; border:1px solid #dbe7ff; color:#1f4fbf; white-space:nowrap;}
-.user-panel button{padding:8px 14px; min-height:40px; border-radius:8px; border:1px solid var(--line); background:#fff; color:#111; font-weight:500; cursor:pointer}
-.user-panel button:hover{border-color:#2d6cdf; color:#2d6cdf}
+.user-panel{
+  display:flex; align-items:center; gap:10px; flex-shrink:0;
+}
+.user-panel .userpill{
+  font-size:var(--fs-sm);
+  padding:4px 10px;
+  border-radius:999px;
+  background:#f2f6ff;
+  border:1px solid #dbe7ff;
+  color:#1f4fbf;
+  white-space:nowrap;
+}
+.user-panel button{
+  padding:8px 14px;
+  min-height:40px;
+  border-radius:100%;
+  border:1px solid var(--line);
+  background:#fff;
+  color:#111;
+  font-weight:500;
+  cursor:pointer;
+  transition:border-color .2s ease, background .2s ease;
+}
+.user-panel button:hover{
+  border-color:#2d6cdf;
+  background:#fff;
+  color:#111; /* цвет текста остаётся прежним */
+}
 
 /* ТИПОГРАФИКА/ШРИФТ */
 @font-face{
@@ -757,3 +781,4 @@ const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.ht
 </script>
 </body>
 </html>
+
