@@ -94,6 +94,9 @@ button.ghost{background:#fff; border-color:var(--line); color:#111}
   display:inline-flex; align-items:center; justify-content:center;
   height:44px; min-height:44px; padding:0 16px; line-height:1; white-space:nowrap; flex:0 0 auto;
 }
+.card .card-title .controls label{
+  display:inline-flex; align-items:center; gap:8px;
+}
 
 hr{border:none; border-top:1px solid var(--line); margin:12px 0}
 .table{width:100%; border-collapse:collapse}
@@ -114,6 +117,17 @@ details.modal > summary::-webkit-details-marker{display:none}
 .row.cols-3>.card:nth-child(3) .row.cols-2{
   gap:12px !important; column-gap:12px !important; row-gap:12px !important;
 }
+
+/* Панель пользователя справа сверху */
+.page-header{
+  display:flex; align-items:center; justify-content:space-between;
+  flex-wrap:wrap; gap:12px; margin-bottom:16px;
+}
+.page-header .info{flex:1 1 auto;}
+.user-panel{display:flex; align-items:center; gap:10px; flex-shrink:0;}
+.user-panel .userpill{font-size:var(--fs-sm); padding:4px 10px; border-radius:999px; background:#f2f6ff; border:1px solid #dbe7ff; color:#1f4fbf; white-space:nowrap;}
+.user-panel button{padding:8px 14px; min-height:40px; border-radius:8px; border:1px solid var(--line); background:#fff; color:#111; font-weight:500; cursor:pointer}
+.user-panel button:hover{border-color:#2d6cdf; color:#2d6cdf}
 
 /* ТИПОГРАФИКА/ШРИФТ */
 @font-face{
@@ -142,18 +156,21 @@ input[type="month"]::-webkit-date-and-time-value{ text-align:left }
 @media (max-width:640px){
   .card .card-title{flex-direction:column; align-items:flex-start; gap:6px;}
   input, select, textarea{ font-size:16px }
+  .page-header{flex-direction:column; align-items:flex-start;}
+  .user-panel{width:100%; justify-content:flex-start;}
 }
 </style>
-
 </head>
 <body>
 <div class="container">
-  <div class="topbar">
-    <div class="left">
-      <h1 style="margin:0">Личный финтрекер Дмитрия</h1>
-      <div class="muted">4 счёта + долг • персональные данные на Supabase</div>
+
+  <!-- ВЕРХНЯЯ ПАНЕЛЬ -->
+  <div class="page-header">
+    <div class="info">
+      <h1>Личный финтрекер Дмитрия</h1>
+      <div class="muted">4 счёта + долг · персональные данные на Supabase</div>
     </div>
-    <div class="right">
+    <div class="user-panel">
       <span id="userEmail" class="userpill">—</span>
       <button class="ghost" id="btnSignOut">Сменить пользователя</button>
     </div>
@@ -280,7 +297,7 @@ input[type="month"]::-webkit-date-and-time-value{ text-align:left }
       <h2 style="margin:0">Транзакции</h2>
       <div class="controls">
         <button id="btnExport">Экспорт JSON</button>
-        <label style="display:inline-flex;align-items:center;gap:8px">
+        <label>
           <input type="file" id="fileImport" accept="application/json" style="display:none">
           <button class="ghost" id="btnImport">Импорт JSON</button>
         </label>
@@ -357,7 +374,7 @@ input[type="month"]::-webkit-date-and-time-value{ text-align:left }
   <footer>сделано руками <a href="https://dmitry-design.ru/" target="_blank" rel="noopener">dmitry-design.ru</a></footer>
 </div>
 
-<!-- Supabase SDK -->
+<!-- Supabase SDK + APP -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL = "https://hxbrvnwukieluzlffgyr.supabase.co";
@@ -372,7 +389,7 @@ const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.ht
   const USER_ID = session.user.id;
   document.getElementById("userEmail").textContent = session.user.email || USER_ID;
 
-  // кнопка «Сменить пользователя»
+  // sign out
   document.getElementById("btnSignOut").onclick = async () => {
     try{ await supabase.auth.signOut(); }catch(e){}
     localStorage.removeItem("dm_user_id");
@@ -416,7 +433,7 @@ const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.ht
   let state = loadLocal();
   await loadCloud();
 
-  // init UI defaults
+  // init dates & month filter
   $('#incDate').value = todayISO();
   $('#expDate').value = todayISO();
   $('#trDate').value = todayISO();
@@ -539,7 +556,7 @@ const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.ht
     });
   }
 
-  // income split preview/add
+  // income preview/add
   document.getElementById('btnPreviewSplit').onclick = () => {
     const amount = Number(document.getElementById('incAmount').value||0);
     const preview = document.getElementById('splitPreview');
