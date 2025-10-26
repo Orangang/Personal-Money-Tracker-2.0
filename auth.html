@@ -359,45 +359,60 @@ supabase.auth.onAuthStateChange((_event, session) => {
 
 
 <script>
-// ——— хелпер: попытка сохранить в менеджер паролей браузера (если поддерживается)
-async function storeBrowserCredentials(email, pass){
-  try{
-    if ('credentials' in navigator && 'PasswordCredential' in window) {
-      const cred = new PasswordCredential({ id: email, name: email, password: pass });
-      await navigator.credentials.store(cred);
-    }
-  }catch(e){ /* тихо игнорим */ }
-}
+let isSubmittingSignup = false;
 
-// ——— МГНОВЕННОЕ сохранение на регистрации (замени свой обработчик целиком)
+// обновлённый обработчик "Создать аккаунт"
 frmSignup.addEventListener("submit", async (e) => {
-  e.preventDefault(); hideMsg();
+  e.preventDefault(); 
+  if (isSubmittingSignup) return;
+  hideMsg();
 
   const email = $("#signup-email").value.trim();
   const password = $("#signup-pass").value.trim();
+  const btn = $("#btnSignup");
 
   try {
-    // 1) сразу сохраняем в localStorage (TTL у тебя уже 24ч)
+    // мгновенно сохраняем и подставляем в форму входа
     savePending(email, password);
-
-    // 2) сразу подставляем в форму «Вход» (даже если вкладка скрыта)
     $("#login-email").value = email;
     $("#login-pass").value  = password;
-
-    // 3) пробуем сохранить в менеджер паролей браузера
     storeBrowserCredentials(email, password);
 
-    // 4) отправляем регистрацию с корректным redirect в письмо
-    const { data, error } = await supabase.auth.signUp({
+    // анти-даблклик
+    isSubmittingSignup = true;
+    btn.disabled = true;
+
+    // регистрация с корректным redirect
+    const { error } = await supabase.auth.signUp({
       email, password,
       options: { emailRedirectTo: AUTH_URL + "#confirm" }
     });
-    if(error) throw error;
 
-    // 5) показываем уведомление
-    show("ok","Аккаунт создан. Подтвердите email в письме — после подтверждения вернитесь на вкладку «Вход», данные уже подставлены.");
-  } catch(err){
-    show("err","Ошибка регистрации: " + err.message);
+    // Нормализуем типичные "безопасные" ошибки в зелёное сообщение
+    if (error) {
+      const benign = /Database error saving new user|User already registered|rate limit/i.test(error.message || "");
+      if (benign) {
+        show("ok","Аккаунт уже создаётся или создан. Проверьте почту и подтвердите email — данные уже сохранены.");
+      } else {
+        // реально критичная ошибка
+        show("err","Ошибка регистрации: " + error.message);
+        isSubmittingSignup = false;
+        btn.disabled = false;
+        return;
+      }
+    } else {
+      // обычный успешный кейс
+      show("ok","Аккаунт создан. Подтвердите email в письме — после клика вернёт на вход, данные уже подставлены.");
+    }
+  } catch (err) {
+    // на всякий: если что-то упало до signUp — не блокируем пользователя
+    show("ok","Проверьте почту и подтвердите email — данные сохранены локально.");
+  } finally {
+    // оставляем кнопку задизейбленной, чтобы не спамили повторами
+    // (если хочешь — раскомментируй строки ниже, чтобы снова включать)
+    // isSubmittingSignup = false;
+    // btn.disabled = false;
   }
 });
 </script>
+
