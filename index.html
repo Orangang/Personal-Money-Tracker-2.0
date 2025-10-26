@@ -127,27 +127,30 @@ details.modal > summary::-webkit-details-marker{display:none}
 .user-panel{
   display:flex; align-items:center; gap:10px; flex-shrink:0;
 }
-.user-panel .userpill{
-  font-size:var(--fs-sm);
-  padding:6px 14px;
-  border-radius:9999px;
-  background:#fff;
-  border:1px solid rgba(26,115,232,.35);
-  color:#1a73e8;
-  white-space:nowrap;
-}
-
-/* Кнопка — стиль как у почты */
 .user-panel button{
-  padding:8px 16px;
-  min-height:40px;
-  border-radius:9999px;                 /* то же мягкое скругление */
+  height:34px;
+  padding:0 14px;
+  border-radius:9999px;                 /* мягкое скругление */
   border:1px solid rgba(26,115,232,.35);/* тонкая голубая рамка */
   background:#fff;
-  color:#111;                           /* цвет текста чёрный */
-  font
+  color:#111;
+  font-family:"SF Pro Display",-apple-system,system-ui,Segoe UI,Roboto,Inter,Arial,sans-serif;
+  font-size:14px;
+  font-weight:400;                      /* полегче начертание */
+  cursor:pointer;
+  transition:border-color .2s ease, box-shadow .2s ease;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  line-height:1;
 }
-
+.user-panel button:hover{
+  border-color:#1a73e8;                 /* синяя обводка на ховере */
+  box-shadow:0 0 0 2px rgba(26,115,232,.18); /* лёгкое свечение */
+  background:#fff;
+  color:#111;                           /* текст остаётся чёрным */
+}
+   
 /* ТИПОГРАФИКА/ШРИФТ */
 @font-face{
   font-family:"SF Pro Display";
@@ -776,6 +779,7 @@ const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.ht
 </script>
 </body>
 </html>
+
 
 
 
