@@ -72,6 +72,20 @@ footer{margin-top:14px; text-align:center; color:#6b7280; font-size:var(--fs-sm)
   .tab{padding:7px 10px}
 }
 </style>
+
+
+<script>
+// Блокировка контекстного меню и Ctrl+U
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('keydown', e => {
+  if(e.ctrlKey && ['u','s','c','x'].includes(e.key.toLowerCase())) e.preventDefault();
+  if(e.keyCode === 123) e.preventDefault(); // F12
+});
+</script>
+
+
+
+  
 </head>
   
 <body>
