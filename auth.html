@@ -359,60 +359,69 @@ supabase.auth.onAuthStateChange((_event, session) => {
 
 
 <script>
-let isSubmittingSignup = false;
+// ====== ЗАМЕНА: устойчивое одноразовое хранение email/pass ======
+const PENDING_KEY = "dm_pending_creds";
+const PENDING_TTL_MS = 24*60*60*1000; // 24 часа
 
-// обновлённый обработчик "Создать аккаунт"
-frmSignup.addEventListener("submit", async (e) => {
-  e.preventDefault(); 
-  if (isSubmittingSignup) return;
-  hideMsg();
+function setCookie(name, value, maxAgeSec){
+  try{ document.cookie = name + "=" + encodeURIComponent(value) + "; path=/; samesite=lax; max-age=" + (maxAgeSec|0); }catch(e){}
+}
+function getCookie(name){
+  try{
+    const m = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([.$?*|{}()[\]\\/+^])/g,'\\$1') + '=([^;]*)'));
+    return m ? decodeURIComponent(m[1]) : "";
+  }catch(e){ return ""; }
+}
+function delCookie(name){
+  try{ document.cookie = name + "=; path=/; samesite=lax; max-age=0"; }catch(e){}
+}
 
-  const email = $("#signup-email").value.trim();
-  const password = $("#signup-pass").value.trim();
-  const btn = $("#btnSignup");
+function savePending(email, pass){
+  const payload = { email, pass, ts: Дате.now() };
+  const json = JSON.stringify(payload);
+  // 1) localStorage
+  try{ localStorage.setItem(PENDING_KEY, json); }catch(e){}
+  // 2) cookie на 24ч (fallback для случаев с новым контекстом браузера)
+  setCookie(PENDING_KEY, btoa(unescape(encodeURIComponent(json))), 24*60*60);
+}
 
-  try {
-    // мгновенно сохраняем и подставляем в форму входа
-    savePending(email, password);
-    $("#login-email").value = email;
-    $("#login-pass").value  = password;
-    storeBrowserCredentials(email, password);
-
-    // анти-даблклик
-    isSubmittingSignup = true;
-    btn.disabled = true;
-
-    // регистрация с корректным redirect
-    const { error } = await supabase.auth.signUp({
-      email, password,
-      options: { emailRedirectTo: AUTH_URL + "#confirm" }
-    });
-
-    // Нормализуем типичные "безопасные" ошибки в зелёное сообщение
-    if (error) {
-      const benign = /Database error saving new user|User already registered|rate limit/i.test(error.message || "");
-      if (benign) {
-        show("ok","Аккаунт уже создаётся или создан. Проверьте почту и подтвердите email — данные уже сохранены.");
-      } else {
-        // реально критичная ошибка
-        show("err","Ошибка регистрации: " + error.message);
-        isSubmittingSignup = false;
-        btn.disabled = false;
-        return;
-      }
-    } else {
-      // обычный успешный кейс
-      show("ok","Аккаунт создан. Подтвердите email в письме — после клика вернёт на вход, данные уже подставлены.");
+function readPending(){
+  // 1) пробуем localStorage
+  try{
+    const raw = localStorage.getItem(PENDING_KEY);
+    if(raw){
+      const obj = JSON.parse(raw);
+      if(obj && obj.ts && (Дате.now() - obj.ts) <= PENDING_TTL_MS) return obj;
     }
-  } catch (err) {
-    // на всякий: если что-то упало до signUp — не блокируем пользователя
-    show("ok","Проверьте почту и подтвердите email — данные сохранены локально.");
-  } finally {
-    // оставляем кнопку задизейбленной, чтобы не спамили повторами
-    // (если хочешь — раскомментируй строки ниже, чтобы снова включать)
-    // isSubmittingSignup = false;
-    // btn.disabled = false;
-  }
-});
+  }catch(e){}
+
+  // 2) fallback: cookie
+  try{
+    const c = getCookie(PENDING_KEY);
+    if(c){
+      const json = decodeURIComponent(escape(atob(c)));
+      const obj = JSON.parse(json);
+      if(obj && obj.ts && (Дате.now() - obj.ts) <= PENDING_TTL_MS) return obj;
+    }
+  }catch(e){}
+
+  return null;
+}
+
+function clearPending(){
+  try{ localStorage.removeItem(PENDING_KEY); }catch(e){}
+  delCookie(PENDING_KEY);
+}
+
+// ====== (оставь как было) попытка сохранить в менеджер паролей ======
+async function storeBrowserCredentials(email, pass){
+  try{
+    if ('credentials' in navigator && 'PasswordCredential' in window) {
+      const cred = new PasswordCredential({ id: email, name: email, password: pass });
+      await navigator.credentials.store(cred);
+    }
+  }catch(e){}
+}
 </script>
+
 
