@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="ru">
 <head>
@@ -8,51 +7,156 @@
 <link rel="shortcut icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64'><text y='50%' x='50%' dominant-baseline='middle' text-anchor='middle' font-size='42'>₽</text></svg>">
 
 <style>
-@font-face{ font-family:"SF Pro Display"; font-style:normal; font-weight:100 900;
-  src:local("SF Pro Display"), local("SFProDisplay-Regular"); font-display:swap }
-:root{ --bg:#fafafa; --card:#fff; --ink:#111; --muted:#666; --line:#eaeaea; --ok:#1f8b4c; --warn:#cc7a00; --bad:#c0392b; --accent:#2d6cdf;
-  --radius:12px; --gap:16px; --shadow:0 2px 10px rgba(0,0,0,.06);
-  --fs-base:clamp(14px,1.4vw,16px); --fs-sm:clamp(12px,1.2vw,14px); --fs-lg:clamp(16px,1.6vw,18px) }
-*{ box-sizing:border-box }
-body{ margin:0; background:var(--bg); color:var(--ink); font:400 var(--fs-base)/1.45 "SF Pro Display",-apple-system,system-ui,Segoe UI,Roboto,Inter,Arial,sans-serif }
-a{ color:var(--accent); text-decoration:none }
-.container{ max-width:1200px; margin:0 auto; padding:20px }
-h1{ font-size:clamp(20px,2.6vw,28px); margin:0 0 12px; font-weight:600 }
-h2{ font-size:clamp(18px,2.2vw,22px); margin:0 0 12px; font-weight:600 }
-h3{ font-size:clamp(16px,2vw,20px); margin:0 0 10px; font-weight:600 }
-.muted{ color:var(--muted) }
-.row{ display:grid; gap:var(--gap) }
-@media(min-width:640px){ .row.cols-2{grid-template-columns:1fr 1fr} .row.cols-3{grid-template-columns:1fr 1fr 1fr} .row.cols-4{grid-template-columns:1fr 1fr 1fr 1fr} }
-.card{ background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:16px }
-.card-title{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; gap:8px }
-.badge{ font-size:var(--fs-sm); padding:2px 8px; border-radius:999px; background:#f2f6ff; border:1px solid #dbe7ff; color:#1f4fbf }
-.kpis{ display:grid; grid-template-columns:repeat(2,1fr); gap:12px }
-.kpi{ padding:12px; border:1px solid var(--line); border-radius:10px }
-.kpi b{ font-size:var(--fs-lg) }
-.progress{ height:10px; background:#f1f1f1; border-radius:999px; overflow:hidden; border:1px solid var(--line) }
-.progress > i{ display:block; height:100%; background:linear-gradient(90deg,#6aa3ff,#2d6cdf) }
-.grid-accounts{ display:grid; gap:12px }
-@media(min-width:640px){ .grid-accounts{ grid-template-columns:repeat(5,1fr) } }
-.account{ border:1px solid var(--line); border-radius:10px; padding:12px }
-.account h4{ margin:0 0 8px; font-size:var(--fs-lg) }
-.account .sum{ font-weight:700 }
-.account .hint{ font-size:var(--fs-sm); color:var(--muted) }
-label{ font-size:var(--fs-sm); color:var(--muted); display:block; margin-bottom:6px }
-label > :is(input,select,textarea){ margin-top:6px }
-input,select,textarea{ width:100%; padding:12px 14px; border:1px solid var(--line); border-radius:8px; background:#fff; color:#111; font:inherit; min-height:48px }
-.controls{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px }
-button{ padding:0 16px; height:44px; min-height:44px; border-radius:8px; border:1px solid #d4e1ff; background:#eaf1ff; color:#1f4fbf; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; line-height:1 }
-button.primary{ border-color:#2d6cdf; background:#2d6cdf; color:#fff }
-button.danger{ border-color:#ffddd9; background:#ffeceb; color:#b22a1f }
-button.ghost{ background:#fff; border-color:var(--line); color:#111 }
+/* ============================================================================
+   ШРИФТ
+   ============================================================================ */
+@font-face{
+  font-family:"SF Pro Display";
+  font-style:normal;
+  font-weight:100 900;
+  src:local("SF Pro Display"), local("SFProDisplay-Regular");
+  font-display:swap;
+}
 
-input[type="date"],input[type="month"]{ -webkit-appearance:none; appearance:none; width:100%; padding:12px 14px; min-height:48px; line-height:1.2; border:1px solid var(--line); border-radius:8px; background:#fff; font:inherit }
-input[type="date"]::-webkit-date-and-time-value,input[type="month"]::-webkit-date-and-time-value{ text-align:left }
+/* ============================================================================
+   БАЗОВЫЕ ТОКЕНЫ + ТИПОГРАФИКА
+   ============================================================================ */
+:root{
+  --bg:#fafafa;
+  --card:#ffffff;
+  --ink:#111;
+  --muted:#666;
+  --line:#eaeaea;
+  --ok:#1f8b4c;
+  --warn:#cc7a00;
+  --bad:#c0392b;
+  --accent:#2d6cdf;
 
-@media(max-width:640px){ .card .card-title{ flex-direction:column; align-items:flex-start } .card .card-title .controls{ width:100%; overflow:auto } input,select,textarea{ font-size:16px } }
-.card .card-title .controls button{ height:44px; min-height:44px; padding:0 16px; white-space:nowrap; flex:0 0 auto }
+  --radius:12px;
+  --gap:16px;
+  --shadow:0 2px 10px rgba(0,0,0,.06);
 
-/* Auth */
+  --fs-base:clamp(14px, 1.4vw, 16px);
+  --fs-sm:clamp(12px, 1.2vw, 14px);
+  --fs-lg:clamp(16px, 1.6vw, 18px);
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font:400 var(--fs-base)/1.45 "SF Pro Display", -apple-system, system-ui, Segoe UI, Roboto, Inter, Arial, sans-serif;
+}
+a{color:var(--accent); text-decoration:none}
+
+h1{font-size:clamp(20px,2.6vw,28px); margin:0 0 12px}
+h2{font-size:clamp(18px,2.2vw,22px); margin:0 0 12px}
+h3{font-size:clamp(16px,2vw,20px); margin:0 0 10px}
+h1,h2,h3{
+  font-weight:600;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  font-synthesis:none;
+}
+
+.container{max-width:1200px; margin:0 auto; padding:20px}
+.muted{color:var(--muted)}
+
+/* ============================================================================
+   СЕТКИ И КАРТОЧКИ
+   ============================================================================ */
+.row{display:grid; gap:var(--gap)}
+@media (min-width:640px){
+  .row.cols-2{grid-template-columns:1fr 1fr}
+  .row.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .row.cols-4{grid-template-columns:1fr 1fr 1fr 1fr}
+}
+
+.card{
+  background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+  box-shadow:var(--shadow); padding:16px;
+}
+.card-title{display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; gap:8px}
+.badge{font-size:var(--fs-sm); padding:2px 8px; border-radius:999px; background:#f2f6ff; border:1px solid #dbe7ff; color:#1f4fbf}
+
+/* KPI */
+.kpis{display:grid; grid-template-columns:repeat(2,1fr); gap:12px}
+.kpi{padding:12px; border:1px solid var(--line); border-radius:10px}
+.kpi b{font-size:var(--fs-lg)}
+
+/* Прогресс долга */
+.progress{height:10px; background:#f1f1f1; border-radius:999px; overflow:hidden; border:1px solid var(--line)}
+.progress > i{display:block; height:100%; background:linear-gradient(90deg, #6aa3ff, #2d6cdf)}
+
+/* Счета */
+.grid-accounts{display:grid; gap:12px}
+@media (min-width:640px){ .grid-accounts{grid-template-columns:repeat(5,1fr)} }
+.account{border:1px solid var(--line); border-radius:10px; padding:12px}
+.account h4{margin:0 0 8px; font-size:var(--fs-lg)}
+.account .sum{font-weight:700}
+.account .hint{font-size:var(--fs-sm); color:var(--muted)}
+
+/* Поля и лейблы */
+label{font-size:var(--fs-sm); color:var(--muted); display:block; margin-bottom:6px}
+label > :is(input,select,textarea){margin-top:6px}
+input, select, textarea{
+  width:100%; padding:12px 14px; border:1px solid var(--line); border-radius:8px; background:#fff; color:#111;
+  font:inherit; min-height:48px;
+}
+
+/* Кнопки */
+.controls{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px}
+button{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:0 16px; height:44px; min-height:44px; line-height:1;
+  border-radius:8px; border:1px solid #d4e1ff; background:#eaf1ff; color:#1f4fbf; font-weight:600; cursor:pointer;
+}
+button.primary{border-color:#2d6cdf; background:#2d6cdf; color:#fff}
+button.danger{border-color:#ffddd9; background:#ffeceb; color:#b22a1f}
+button.ghost{background:#fff; border-color:var(--line); color:#111}
+
+/* Таблица */
+.table{width:100%; border-collapse:collapse}
+.table th,.table td{border-bottom:1px solid var(--line); padding:8px; text-align:left; font-size:var(--fs-sm)}
+.table th{color:var(--muted); font-weight:600}
+.tag{display:inline-block; padding:2px 8px; font-size:var(--fs-sm); border:1px solid var(--line); border-radius:999px}
+.help{font-size:var(--fs-sm); color:var(--muted)}
+footer{margin:24px 0; text-align:center; color:var(--muted); font-size:var(--fs-sm)}
+
+/* Простые модалки на <details> */
+details.modal{border:1px solid var(--line); border-radius:var(--radius); padding:12px}
+details.modal > summary{cursor:pointer; list-style:none; font-weight:700}
+details.modal > summary::-webkit-details-marker{display:none}
+.summary-row{display:flex; align-items:center; justify-content:space-between; gap:8px}
+.summary-row small{color:var(--muted)}
+
+/* ============================================================================
+   iOS/WebKit правки для date/month/select
+   ============================================================================ */
+input[type="date"], input[type="month"]{
+  -webkit-appearance:none; appearance:none; width:100%;
+  min-height:48px; line-height:1.2; padding:12px 14px;
+  border:1px solid var(--line); border-radius:8px; background:#fff; font:inherit;
+}
+input[type="date"]::-webkit-date-and-time-value,
+input[type="month"]::-webkit-date-and-time-value{ text-align:left }
+
+select{
+  -webkit-appearance:none; appearance:none;
+  min-height:48px; line-height:1.2; padding:12px 14px; font:inherit; background:#fff; border:1px solid var(--line); border-radius:8px;
+}
+
+/* Кнопочные группы под заголовками (мобила — в строку со скроллом) */
+@media (max-width:640px){
+  .card .card-title{ flex-direction:column; align-items:flex-start }
+  .card .card-title .controls{ width:100%; overflow:auto }
+  input, select, textarea{ font-size:16px } /* анти-зуум iOS */
+}
+.card .card-title .controls button{ white-space:nowrap; flex:0 0 auto }
+
+/* ============================================================================
+   AUTH UI
+   ============================================================================ */
 #authCard .auth-wrap{ max-width:720px; margin:0 auto }
 .tabs{ display:flex; gap:6px; margin-bottom:10px }
 .tabs button{ background:#fff; border:1px solid var(--line); color:#111; padding:8px 14px; height:auto; border-radius:999px }
@@ -60,7 +164,7 @@ input[type="date"]::-webkit-date-and-time-value,input[type="month"]::-webkit-dat
 #authHelp{ margin-top:8px }
 #authCard .controls{ margin-top:6px }
 
-/* Sign state */
+/* Виды при авторизации */
 .app-only{ display:none }
 body.signed .app-only{ display:block }
 body.signed #authCard{ display:none !important }
@@ -83,6 +187,7 @@ body.signed #authCard{ display:none !important }
 </head>
 <body>
 <div class="container">
+  <!-- Шапка -->
   <header style="margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; gap:12px">
     <div>
       <h1>Личный финтрекер Дмитрия</h1>
@@ -127,7 +232,7 @@ body.signed #authCard{ display:none !important }
     </div>
   </section>
 
-  <!-- DASHBOARD -->
+  <!-- DASHBOARD (во всю ширину) -->
   <section class="card app-only">
     <div class="card-title">
       <h2 style="margin:0">Дашборд</h2>
@@ -152,8 +257,9 @@ body.signed #authCard{ display:none !important }
     </div>
   </section>
 
-  <!-- OPERATIONS -->
+  <!-- ОПЕРАЦИИ (3 колонки) -->
   <section class="row cols-3 app-only" style="margin-top:16px">
+    <!-- Доход -->
     <div class="card">
       <h3>Добавить доход</h3>
       <label>Дата <input type="date" id="incDate"></label>
@@ -168,6 +274,7 @@ body.signed #authCard{ display:none !important }
       <div id="splitPreview" class="help" style="display:none; margin-top:6px"></div>
     </div>
 
+    <!-- Расход -->
     <div class="card">
       <h3>Добавить расход</h3>
       <label>Дата <input type="date" id="expDate"></label>
@@ -185,6 +292,7 @@ body.signed #authCard{ display:none !important }
       <div class="controls"><button class="primary" id="btnAddExpense">Добавить</button></div>
     </div>
 
+    <!-- Перевод + Долг -->
     <div class="card">
       <h3>Переводы и долг</h3>
       <details class="modal" style="margin-bottom:8px" open>
@@ -226,7 +334,7 @@ body.signed #authCard{ display:none !important }
     </div>
   </section>
 
-  <!-- TRANSACTIONS -->
+  <!-- ТРАНЗАКЦИИ (в одну колонку) -->
   <section class="card app-only" style="margin-top:16px">
     <div class="card-title">
       <h2 style="margin:0">Транзакции</h2>
@@ -268,14 +376,51 @@ body.signed #authCard{ display:none !important }
     </div>
   </section>
 
+  <!-- НАСТРОЙКИ (в одну колонку) -->
+  <section class="card app-only" style="margin-top:16px">
+    <h2>Настройки</h2>
+    <div class="row cols-4">
+      <label>Базовый ₽ <input type="number" id="stBase" min="0" step="0.01"></label>
+      <label>Расходный ₽ <input type="number" id="stFixed" min="0" step="0.01"></label>
+      <label>Весёлый ₽ <input type="number" id="stFun" min="0" step="0.01"></label>
+      <label>Накопления ₽ <input type="number" id="stSave" min="0" step="0.01"></label>
+    </div>
+    <div class="row cols-4" style="margin-top:8px">
+      <label>Сумма долга ₽ <input type="number" id="stDebtTotal" min="0" step="0.01"></label>
+      <label>Уже погашено ₽ <input type="number" id="stDebtPaid" min="0" step="0.01"></label>
+      <label>Начало месяца (день) <input type="number" id="stMonthStart" min="1" max="28"></label>
+    </div>
+    <h3 style="margin-top:12px">Доли авто-раскидки дохода (%)</h3>
+    <div class="row cols-4">
+      <label>Базовый % <input type="number" id="spBase" min="0" max="100"></label>
+      <label>Расходный % <input type="number" id="spFixed" min="0" max="100"></label>
+      <label>Весёлый % <input type="number" id="spFun" min="0" max="100"></label>
+      <label>Накопления % <input type="number" id="spSave" min="0" max="100"></label>
+    </div>
+    <div class="help" id="splitSumHelp" style="margin-top:6px">Сумма долей должна быть 100%.</div>
+    <div class="controls">
+      <button class="primary" id="btnSaveSettings">Сохранить настройки</button>
+      <button class="ghost" id="btnFillDemo">Загрузить демо-данные</button>
+    </div>
+  </section>
+
   <footer class="app-only">v2 • локальное хранение + Supabase синк • сделано под тебя</footer>
 </div>
 
 <script>
+/* ============================================================================
+   Personal Money Tracker — v2 (локально + Supabase)
+   ============================================================================ */
 (() => {
   "use strict";
-  const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true} });
+
+  // --- Supabase ---
+  const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
+  });
   let CURRENT_USER = null;
+
+  // --- Утилиты ---
   const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
   const fmtRUB=(n)=>(Number(n)||0).toLocaleString('ru-RU',{style:'currency',currency:'RUB',maximumFractionDigits:0});
   const fmtNum=(n,d=2)=>(Number(n)||0).toLocaleString('ru-RU',{minimumFractionDigits:d,maximumFractionDigits:d});
@@ -283,7 +428,9 @@ body.signed #authCard{ display:none !important }
   const todayISO=()=>new Date().toISOString().slice(0,10);
   const monthStr=(d=new Date())=>d.toLocaleString('ru-RU',{month:'long',year:'numeric'});
   const uid=()=> (crypto.randomUUID?crypto.randomUUID():(Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4)));
+  const round = (n) => Math.round((Number(n)||0));
   const LS_KEY='dm_fin_v1';
+
   function toast(type,title,msg,timeout=4200){
     const root=$('#toast-root'); if(!root) return alert(title+"\n"+(msg||''));
     const el=document.createElement('div'); el.className='toast '+type;
@@ -291,13 +438,105 @@ body.signed #authCard{ display:none !important }
     root.appendChild(el); const close=()=>{el.style.opacity='0'; setTimeout(()=>el.remove(),200)};
     el.querySelector('.close').onclick=close; setTimeout(close,timeout);
   }
+
   function setSigned(signed){
     document.body.classList.toggle('signed',!!signed);
     const b=$('#authStatus'); if(b) b.textContent=signed?'online':'offline';
     $('#btnSignOutHeader').style.display=signed?'inline-flex':'none';
   }
-  setSigned(false);
 
+  // --- Локальное хранилище ---
+  let state = load();
+  function load(){
+    try{ const raw=localStorage.getItem(LS_KEY); if(raw) return JSON.parse(raw); }catch(e){}
+    return {
+      settings:{
+        accounts:{ base:0, fixed:0, fun:0, save:0, debtTotal:0, debtPaid:0 },
+        autosplit:{ base:40, fixed:30, fun:10, save:20 },
+        monthStartDay:1
+      },
+      transactions:[]
+    };
+  }
+  function save(){ localStorage.setItem(LS_KEY, JSON.stringify(state)); }
+
+  // --- Облако: профили/настройки/операции ---
+  async function ensureProfileAndSettings(user){
+    await supa.from('profiles').upsert({ id:user.id, email:user.email }, { onConflict:'id' });
+    const { data: s } = await supa.from('settings').select('*').eq('user_id', user.id).maybeSingle();
+    if(!s){
+      await supa.from('settings').insert({
+        user_id:user.id,
+        accounts:state.settings.accounts,
+        autosplit:state.settings.autosplit,
+        month_start_day:state.settings.monthStartDay
+      });
+    }
+  }
+  async function loadFromCloud(){
+    if(!CURRENT_USER) return false;
+    const uid=CURRENT_USER.id;
+    const [{data:setRow},{data:txRows}] = await Promise.all([
+      supa.from('settings').select('*').eq('user_id',uid).maybeSingle(),
+      supa.from('transactions').select('*').eq('user_id',uid).order('date',{ascending:false})
+    ]);
+    if(setRow){
+      state.settings.accounts=setRow.accounts||state.settings.accounts;
+      state.settings.autosplit=setRow.autosplit||state.settings.autosplit;
+      state.settings.monthStartDay=setRow.month_start_day||state.settings.monthStartDay;
+    }
+    if(Array.isArray(txRows)){
+      state.transactions=txRows.map(r=>({
+        id:r.id, date:r.date, type:r.type,
+        account:r.account||undefined,
+        fromAccount:r.from_account||undefined,
+        toAccount:r.to_account||undefined,
+        amount:Number(r.amount),
+        category:r.category||undefined,
+        note:r.note||undefined
+      }));
+    }
+    save(); return true;
+  }
+  async function saveSettingsToCloud(){
+    if(!CURRENT_USER) return;
+    await supa.from('settings').upsert({
+      user_id:CURRENT_USER.id,
+      accounts:state.settings.accounts,
+      autosplit:state.settings.autosplit,
+      month_start_day:state.settings.monthStartDay,
+      updated_at:new Date().toISOString()
+    }, { onConflict:'user_id' });
+  }
+  async function upsertTxToCloud(tx){
+    if(!CURRENT_USER) return;
+    await supa.from('transactions').upsert({
+      id:tx.id, user_id:CURRENT_USER.id, date:tx.date, type:tx.type,
+      account:tx.account||null, from_account:tx.fromAccount||null, to_account:tx.toAccount||null,
+      amount:tx.amount, category:tx.category||null, note:tx.note||null
+    });
+  }
+  async function deleteTxInCloud(id){
+    if(!CURRENT_USER) return;
+    await supa.from('transactions').delete().eq('id',id);
+  }
+  async function maybeBootstrapCloudFromLocal(){
+    if(!CURRENT_USER) return;
+    const {data:exists}=await supa.from('transactions').select('id').eq('user_id',CURRENT_USER.id).limit(1);
+    if(!exists||exists.length===0){
+      if(state.transactions.length){
+        const bulk=state.transactions.map(t=>({
+          id:t.id, user_id:CURRENT_USER.id, date:t.date, type:t.type,
+          account:t.account||null, from_account:t.fromAccount||null, to_account:t.toAccount||null,
+          amount:t.amount, category:t.category||null, note:t.note||null
+        }));
+        await supa.from('transactions').insert(bulk);
+      }
+      await saveSettingsToCloud();
+    }
+  }
+
+  // --- AUTH UI ---
   let authMode='login';
   function applyAuthMode(){
     $$('.tabs button').forEach(btn=>btn.classList.toggle('active', btn.dataset.mode===authMode));
@@ -309,65 +548,37 @@ body.signed #authCard{ display:none !important }
   applyAuthMode();
   $$('.tabs button').forEach(b=> b.addEventListener('click',()=>{ authMode=b.dataset.mode; applyAuthMode(); }));
 
-  let state=load();
-  function load(){ try{const raw=localStorage.getItem(LS_KEY); if(raw) return JSON.parse(raw);}catch(e){} return { settings:{ accounts:{base:0,fixed:0,fun:0,save:0,debtTotal:0,debtPaid:0}, autosplit:{base:40,fixed:30,fun:10,save:20}, monthStartDay:1 }, transactions:[] }; }
-  function save(){ localStorage.setItem(LS_KEY, JSON.stringify(state)); }
+  // Кнопка «Сменить аккаунт» — прямой обработчик (исправляет «не сразу срабатывает»)
+  document.getElementById('btnSignOutHeader').addEventListener('click', async () => {
+    try{ await supa.auth.signOut(); CURRENT_USER=null; setSigned(false); toast('ok','Вы вышли из аккаунта'); }
+    catch(err){ toast('err','Ошибка выхода', err.message||String(err)); }
+  });
 
-  async function ensureProfileAndSettings(user){
-    await supa.from('profiles').upsert({ id:user.id, email:user.email }, { onConflict:'id' });
-    const { data: s } = await supa.from('settings').select('*').eq('user_id', user.id).maybeSingle();
-    if(!s){ await supa.from('settings').insert({ user_id:user.id, accounts:state.settings.accounts, autosplit:state.settings.autosplit, month_start_day:state.settings.monthStartDay }); }
-  }
-  async function loadFromCloud(){
-    if(!CURRENT_USER) return false; const uid=CURRENT_USER.id;
-    const [{data:setRow},{data:txRows}] = await Promise.all([
-      supa.from('settings').select('*').eq('user_id',uid).maybeSingle(),
-      supa.from('transactions').select('*').eq('user_id',uid).order('date',{ascending:false})
-    ]);
-    if(setRow){ state.settings.accounts=setRow.accounts||state.settings.accounts; state.settings.autosplit=setRow.autosplit||state.settings.autosplit; state.settings.monthStartDay=setRow.month_start_day||state.settings.monthStartDay; }
-    if(Array.isArray(txRows)){ state.transactions=txRows.map(r=>({ id:r.id,date:r.date,type:r.type, account:r.account||undefined,fromAccount:r.from_account||undefined,toAccount:r.to_account||undefined, amount:Number(r.amount),category:r.category||undefined,note:r.note||undefined })); }
-    save(); return true;
-  }
-  async function saveSettingsToCloud(){ if(!CURRENT_USER) return; await supa.from('settings').upsert({ user_id:CURRENT_USER.id, accounts:state.settings.accounts, autosplit:state.settings.autosplit, month_start_day:state.settings.monthStartDay, updated_at:new Date().toISOString() }, { onConflict:'user_id' }); }
-  async function upsertTxToCloud(tx){ if(!CURRENT_USER) return; await supa.from('transactions').upsert({ id:tx.id,user_id:CURRENT_USER.id,date:tx.date,type:tx.type,account:tx.account||null,from_account:tx.fromAccount||null,to_account:tx.toAccount||null,amount:tx.amount,category:tx.category||null,note:tx.note||null }); }
-  async function deleteTxInCloud(id){ if(!CURRENT_USER) return; await supa.from('transactions').delete().eq('id',id); }
-  async function maybeBootstrapCloudFromLocal(){ if(!CURRENT_USER) return; const {data:exists}=await supa.from('transactions').select('id').eq('user_id',CURRENT_USER.id).limit(1); if(!exists||exists.length===0){ if(state.transactions.length){ const bulk=state.transactions.map(t=>({id:t.id,user_id:CURRENT_USER.id,date:t.date,type:t.type,account:t.account||null,from_account:t.fromAccount||null,to_account:t.toAccount||null,amount:t.amount,category:t.category||null,note:t.note||null})); await supa.from('transactions').insert(bulk);} await saveSettingsToCloud(); } }
-
-  async function doLogin(email, pass){
-    const {data,error} = await supa.auth.signInWithPassword({ email, password:pass });
-    if(error) throw error; CURRENT_USER=data.user;
-    await ensureProfileAndSettings(CURRENT_USER); await maybeBootstrapCloudFromLocal(); await loadFromCloud();
-    renderAll(); setSigned(true); toast('ok','Вход выполнен');
-  }
-  async function doSignup(email, pass){
-    const { data, error } = await supa.auth.signUp({ email, password:pass });
-    if(error) throw error;
-    if(data.user){
-      CURRENT_USER=data.user; await ensureProfileAndSettings(CURRENT_USER); await maybeBootstrapCloudFromLocal(); await loadFromCloud(); renderAll(); setSigned(true); toast('ok','Аккаунт создан и вход выполнен');
-    }else{
-      authMode='login'; applyAuthMode(); $('#authEmail').value=email; toast('ok','Аккаунт создан','Проверьте почту (если требуется подтверждение), затем войдите.');
-    }
-  }
-
-  document.addEventListener('click', async (e)=>{
-    const id=e.target.id;
+  // Основные auth-кнопки
+  document.getElementById('btnPrimaryAuth').addEventListener('click', async ()=>{
     try{
-      if(id==='btnPrimaryAuth'){
-        const email=$('#authEmail').value.trim(); const pass=$('#authPass').value;
-        if(!email||!pass) return toast('warn','Нужно заполнить','E-mail и пароль обязательны.');
-        if(authMode==='login') await doLogin(email,pass); else await doSignup(email,pass);
-      }
-      if(id==='btnReset'){
-        const email=$('#authEmail').value.trim(); if(!email) return toast('warn','Укажи e-mail для сброса');
-        const {error}=await supa.auth.resetPasswordForEmail(email,{ redirectTo: location.origin + location.pathname + '#recovery' });
-        if(error) throw error; toast('ok','Письмо отправлено','Проверь почту и перейди по ссылке.');
-      }
-      if(id==='btnSetNewPass'){
-        const np=$('#newPass').value; if(!np||np.length<6) return toast('warn','Слабый пароль','Минимум 6 символов.');
-        const {error}=await supa.auth.updateUser({ password:np }); if(error) throw error; $('#pwRecovery').style.display='none'; toast('ok','Пароль обновлён','Теперь войдите новой парой.');
-      }
-      if(id==='btnSignOutHeader'){
-        await supa.auth.signOut(); CURRENT_USER=null; setSigned(false); toast('ok','Вы вышли из аккаунта');
+      const email=$('#authEmail').value.trim(); const pass=$('#authPass').value;
+      if(!email||!pass) return toast('warn','Нужно заполнить','E-mail и пароль обязательны.');
+      if(authMode==='login'){
+        const {data,error}=await supa.auth.signInWithPassword({ email, password:pass });
+        if(error) throw error; CURRENT_USER=data.user;
+        await ensureProfileAndSettings(CURRENT_USER);
+        await maybeBootstrapCloudFromLocal();
+        await loadFromCloud();
+        renderAll(); setSigned(true); toast('ok','Вход выполнен');
+      }else{
+        const {data,error}=await supa.auth.signUp({ email, password:pass });
+        if(error) throw error;
+        if(data.user){
+          CURRENT_USER=data.user;
+          await ensureProfileAndSettings(CURRENT_USER);
+          await maybeBootstrapCloudFromLocal();
+          await loadFromCloud();
+          renderAll(); setSigned(true); toast('ok','Аккаунт создан и вход выполнен');
+        }else{
+          authMode='login'; applyAuthMode(); $('#authEmail').value=email;
+          toast('ok','Аккаунт создан','Проверь почту (если требуется подтверждение), затем войдите.');
+        }
       }
     }catch(err){
       const msg=(err&&(err.message||err.error_description))||String(err);
@@ -376,15 +587,56 @@ body.signed #authCard{ display:none !important }
     }
   });
 
+  document.getElementById('btnReset').addEventListener('click', async ()=>{
+    const email=$('#authEmail').value.trim(); if(!email) return toast('warn','Укажи e-mail для сброса');
+    const {error}=await supa.auth.resetPasswordForEmail(email,{ redirectTo: location.origin + location.pathname + '#recovery' });
+    if(error) toast('err','Ошибка',error.message||String(error)); else toast('ok','Письмо отправлено','Проверь почту и перейди по ссылке.');
+  });
+
+  document.getElementById('btnSetNewPass').addEventListener('click', async ()=>{
+    const np=$('#newPass').value; if(!np||np.length<6) return toast('warn','Слабый пароль','Минимум 6 символов.');
+    const {error}=await supa.auth.updateUser({ password:np });
+    if(error) toast('err','Ошибка',error.message||String(error)); else { $('#pwRecovery').style.display='none'; toast('ok','Пароль обновлён','Теперь войдите новой парой.'); }
+  });
+
   supa.auth.onAuthStateChange(async (event, session)=>{
     CURRENT_USER=session?.user||null;
     if(event==='PASSWORD_RECOVERY'){ $('#pwRecovery').style.display='block'; setSigned(false); return; }
     setSigned(!!CURRENT_USER);
-    if(CURRENT_USER){ try{ await ensureProfileAndSettings(CURRENT_USER); await loadFromCloud(); renderAll(); } catch(err){ toast('err','Ошибка загрузки', err.message||String(err)); } }
+    if(CURRENT_USER){
+      try{ await ensureProfileAndSettings(CURRENT_USER); await loadFromCloud(); renderAll(); }
+      catch(err){ toast('err','Ошибка загрузки', err.message||String(err)); }
+    }
   });
 
-  // tracker UI minimal for demo (settings fields intentionally not displayed to shorten file)
-  $('#incDate').value=todayISO(); $('#expDate').value=todayISO(); $('#trDate').value=todayISO(); $('#debtDate').value=todayISO(); $('#fltMonth').value=new Date().toISOString().slice(0,7);
+  // --- Инициализация форм дат ---
+  $('#incDate').value=todayISO(); $('#expDate').value=todayISO(); $('#trDate').value=todayISO(); $('#debtDate').value=todayISO();
+  $('#fltMonth').value=new Date().toISOString().slice(0,7);
+
+  // --- Настройки UI ---
+  function cap(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+  function updateSplitSumHelp(){
+    const sum = ['base','fixed','fun','save'].reduce((s,k)=>s+Number($('#sp'+cap(k)).value||0),0);
+    $('#splitSumHelp').textContent = `Сумма долей: ${sum}% (должно быть 100%).`;
+    $('#splitSumHelp').style.color = (sum===100)? 'var(--muted)' : 'var(--bad)';
+  }
+  function fillSettingsUI(){
+    const A=state.settings.accounts;
+    $('#stBase').value=A.base; $('#stFixed').value=A.fixed; $('#stFun').value=A.fun; $('#stSave').value=A.save;
+    $('#stDebtTotal').value=A.debtTotal; $('#stDebtPaid').value=A.debtPaid;
+    $('#stMonthStart').value=state.settings.monthStartDay;
+
+    $('#spBase').value=state.settings.autosplit.base;
+    $('#spFixed').value=state.settings.autosplit.fixed;
+    $('#spFun').value=state.settings.autosplit.fun;
+    $('#spSave').value=state.settings.autosplit.save;
+    updateSplitSumHelp();
+  }
+  ['spBase','spFixed','spFun','spSave'].forEach(id => { $('#'+id).addEventListener('input', updateSplitSumHelp); });
+
+  // --- Рендер дашборда ---
+  function labelAcc(k){ return ({base:'Базовый', fixed:'Расходный', fun:'Весёлый', save:'Накопления'})[k] || '—'; }
+  function labelType(t){ return ({income:'Доход', expense:'Расход', transfer:'Перевод', debt:'Долг'})[t] || t; }
 
   function renderDashboard(){
     $('#currentMonthBadge').textContent=monthStr(new Date());
@@ -414,6 +666,7 @@ body.signed #authCard{ display:none !important }
     $('#todayStr').textContent=new Date().toLocaleDateString('ru-RU');
   }
 
+  // --- Таблица ---
   function renderTable(){
     const month=$('#fltMonth').value||new Date().toISOString().slice(0,7);
     const tp=$('#fltType').value;
@@ -424,52 +677,258 @@ body.signed #authCard{ display:none !important }
     list = list.filter(t => (t.date||'').startsWith(month));
     if(tp) list = list.filter(t => t.type===tp);
     if(acc){
-      list = list.filter(t => {
-        return t.account===acc || t.fromAccount===acc || t.toAccount===acc;
-      });
+      list = list.filter(t => (t.account===acc || t.fromAccount===acc || t.toAccount===acc));
     }
     if(q){
       list = list.filter(t => ((t.category||'')+(t.note||'')).toLowerCase().includes(q));
     }
 
-    const tbody = $('#txTable tbody');
-    tbody.innerHTML = '';
+    const tbody = $('#txTable tbody'); tbody.innerHTML = '';
     for(const t of list){
+      const accounts =
+        t.type==='transfer' ? (labelAcc(t.fromAccount)+' → '+labelAcc(t.toAccount)) :
+        t.type==='income'   ? (labelAcc(t.account)+' (+)') :
+        t.type==='expense'  ? (labelAcc(t.account)+' (−)') :
+        t.type==='debt'     ? ('Долг'+(t.account? ' (− '+labelAcc(t.account)+')':'' )) : '—';
+
       const tr = document.createElement('tr');
-      const accounts = (
-        t.type==='transfer' ? labelAcc(t.fromAccount)+' → '+labelAcc(t.toAccount) :
-        t.type==='income'   ? labelAcc(t.account)+' (+)' :
-        t.type==='expense'  ? labelAcc(t.account)+' (−)' :
-        t.type==='debt'     ? 'Долг'+(t.account? ' (− '+labelAcc(t.account)+')':'' ) : ''
-      );
       tr.innerHTML =
         '<td>'+t.date+'</td>'+
         '<td><span class="tag">'+labelType(t.type)+'</span></td>'+
-        '<td>'+(accounts||'—')+'</td>'+
+        '<td>'+accounts+'</td>'+
         '<td style="white-space:nowrap">'+((t.type==='expense'||(t.type==='transfer'&&t.fromAccount))?'-':'')+fmtNum(t.amount,0)+' ₽</td>'+
         '<td>'+(t.category||'—')+'</td>'+
         '<td>'+(t.note||'')+'</td>'+
         '<td style="text-align:right"><button class="ghost" data-del="'+t.id+'">✕</button></td>';
       tbody.appendChild(tr);
     }
-
     $('#listInfo').textContent = 'Показано: '+list.length+' операций. Всего в базе: '+state.transactions.length+'.';
+
     $$('button[data-del]').forEach(btn=>{
       btn.onclick = async () => {
         const id = btn.getAttribute('data-del');
         state.transactions = state.transactions.filter(t=>t.id!==id);
-        save();
-        renderAll();
+        save(); renderAll();
         await deleteTxInCloud(id);
       };
     });
   }
 
-  function labelAcc(k){ return ({base:'Базовый', fixed:'Расходный', fun:'Весёлый', save:'Накопления'})[k] || '—'; }
-  function labelType(t){ return ({income:'Доход', expense:'Расход', transfer:'Перевод', debt:'Долг'})[t] || t; }
+  // --- Авто-раскидка дохода ---
+  function incomeSplit(amount){
+    const s = state.settings.autosplit;
+    const parts = {
+      base: round(amount * (s.base/100)),
+      fixed: round(amount * (s.fixed/100)),
+      fun:   round(amount * (s.fun/100)),
+      save:  round(amount * (s.save/100)),
+    };
+    const sum = parts.base + parts.fixed + parts.fun + parts.save;
+    const delta = round(amount - sum);
+    if(delta !== 0){ parts.base += delta; }
+    return parts;
+  }
 
-  function renderAll(){ renderDashboard(); renderTable(); }
+  // --- Обработчики форм операций ---
+  $('#btnPreviewSplit').onclick = () => {
+    const amount = Number($('#incAmount').value||0);
+    if(!amount){ $('#splitPreview').style.display='none'; return; }
+    const p = incomeSplit(amount);
+    $('#splitPreview').style.display = 'block';
+    $('#splitPreview').textContent =
+      `Распределение: Базовый ${fmtRUB(p.base)}, Расходный ${fmtRUB(p.fixed)}, Весёлый ${fmtRUB(p.fun)}, Накопления ${fmtRUB(p.save)}.`;
+  };
+
+  $('#btnAddIncome').onclick = async () => {
+    const date = $('#incDate').value || todayISO();
+    const amount = Number($('#incAmount').value||0);
+    const category = ($('#incCategory').value||'Доход');
+    const note = ($('#incNote').value||'');
+    if(amount<=0) return alert('Введите сумму дохода > 0');
+
+    const split = incomeSplit(amount);
+    const txs = [];
+    for(const k of ['base','fixed','fun','save']){
+      if(split[k] > 0){
+        const tx = { id: uid(), date, type:'income', account:k, amount: split[k], category, note };
+        txs.push(tx);
+        state.settings.accounts[k] += split[k];
+        await upsertTxToCloud(tx);
+      }
+    }
+    state.transactions.push(...txs);
+    save(); await saveSettingsToCloud();
+    $('#incAmount').value=''; $('#incNote').value=''; $('#splitPreview').style.display='none';
+    renderAll();
+  };
+
+  $('#btnAddExpense').onclick = async () => {
+    const date = $('#expDate').value || todayISO();
+    const amount = Number($('#expAmount').value||0);
+    const account = $('#expAcc').value;
+    const category = ($('#expCategory').value||'Расход');
+    const note = ($('#expNote').value||'');
+    if(amount<=0) return alert('Введите сумму расхода > 0');
+
+    if(state.settings.accounts[account] < amount){
+      if(!confirm('На счёте не хватает средств. Продолжить?')) return;
+    }
+
+    const tx = { id: uid(), date, type:'expense', account, amount, category, note };
+    state.transactions.push(tx);
+    state.settings.accounts[account] -= amount;
+    save(); await upsertTxToCloud(tx); await saveSettingsToCloud();
+    $('#expAmount').value=''; $('#expNote').value='';
+    renderAll();
+  };
+
+  $('#btnTransfer').onclick = async () => {
+    const date = $('#trDate').value || todayISO();
+    const amount = Number($('#trAmount').value||0);
+    const from = $('#trFrom').value;
+    const по = $('#trTo').value;
+    const note = ($('#trNote').value||'');
+    if(amount<=0) return alert('Введите сумму перевода > 0');
+    if(from===по) return alert('Выберите разные счета');
+
+    if(state.settings.accounts[from] < amount){
+      if(!confirm('На счёте-источнике не хватает средств. Продолжить?')) return;
+    }
+
+    const tx = { id: uid(), date, type:'transfer', fromAccount:from, toAccount:по, amount, category:'Перевод', note };
+    state.transactions.push(tx);
+    state.settings.accounts[from] -= amount;
+    state.settings.accounts[по] += amount;
+    save(); await upsertTxToCloud(tx); await saveSettingsToCloud();
+    $('#trAmount').value=''; $('#trNote').value='';
+    renderAll();
+  };
+
+  $('#btnDebtPay').onclick = async () => {
+    const date = $('#debtDate').value || todayISO();
+    const amount = Number($('#debtPayAmount').value||0);
+    const from = $('#debtFrom').value;
+    const note = ($('#debtNote').value||'');
+    if(amount<=0) return alert('Введите сумму платежа > 0');
+
+    const tx = { id: uid(), date, type:'debt', amount, account: from || undefined, category:'Платёж по долгу', note };
+    state.transactions.push(tx);
+
+    if(from){
+      if(state.settings.accounts[from] < amount){
+        if(!confirm('На счёте не хватает средств. Продолжить?')) return;
+      }
+      state.settings.accounts[from] -= amount;
+    }
+    state.settings.accounts.debtPaid = clamp(
+      round(state.settings.accounts.debtPaid + amount),
+      0,
+      round(state.settings.accounts.debtTotal)
+    );
+
+    save(); await upsertTxToCloud(tx); await saveSettingsToCloud();
+    $('#debtPayAmount').value=''; $('#debtNote').value='';
+    renderAll();
+  };
+
+  $('#btnDebtReset').onclick = async () => {
+    if(confirm('Сбросить прогресс погашения долга?')){
+      state.settings.accounts.debtPaid = 0;
+      save(); await saveSettingsToCloud(); renderAll();
+    }
+  };
+
+  // --- Фильтры ---
+  $('#fltMonth').oninput = () => { renderDashboard(); renderTable(); };
+  $('#fltType').oninput = renderTable;
+  $('#fltAcc').oninput  = renderTable;
+  $('#fltSearch').oninput = renderTable;
+
+  // --- Настройки: сохранить / демо ---
+  $('#btnSaveSettings').onclick = async () => {
+    const A = state.settings.accounts;
+    A.base = Number($('#stBase').value||0);
+    A.fixed = Number($('#stFixed').value||0);
+    A.fun = Number($('#stFun').value||0);
+    A.save = Number($('#stSave').value||0);
+    A.debtTotal = Number($('#stDebtTotal').value||0);
+    A.debtPaid  = Number($('#stDebtPaid').value||0);
+
+    state.settings.autosplit = {
+      base: Number($('#spBase').value||0),
+      fixed: Number($('#spFixed').value||0),
+      fun:   Number($('#spFun').value||0),
+      save:  Number($('#spSave').value||0)
+    };
+    state.settings.monthStartDay = clamp(Number($('#stMonthStart').value||1),1,28);
+
+    const sum = Object.values(state.settings.autosplit).reduce((s,n)=>s+Number(n||0),0);
+    if(sum!==100){ return alert('Сумма долей должна быть 100%.'); }
+
+    save(); await saveSettingsToCloud(); renderAll();
+    toast('ok','Настройки сохранены');
+  };
+
+  $('#btnFillDemo').onclick = async () => {
+    if(!confirm('Загрузить демо-данные и перезаписать текущие?')) return;
+    state = {
+      settings:{
+        accounts:{ base:35000, fixed:20000, fun:7000, save:45000, debtTotal:300000, debtPaid:65000 },
+        autosplit:{ base:40, fixed:30, fun:10, save:20 },
+        monthStartDay:1
+      },
+      transactions:[
+        {id:uid(), date: isoShift(-25), type:'income', account:'base', amount:60000, category:'Зарплата', note:'автосплит'},
+        {id:uid(), date: isoShift(-25), type:'income', account:'fixed', amount:45000, category:'Зарплата', note:'автосплит'},
+        {id:uid(), date: isoShift(-25), type:'income', account:'fun', amount:15000, category:'Зарплата', note:'автосплит'},
+        {id:uid(), date: isoShift(-25), type:'income', account:'save', amount:30000, category:'Зарплата', note:'автосплит'},
+
+        {id:uid(), date: isoShift(-7), type:'expense', account:'fixed', amount:12000, category:'Аренда', note:''},
+        {id:uid(), date: isoShift(-6), type:'expense', account:'fixed', amount:1500, category:'Связь', note:''},
+        {id:uid(), date: isoShift(-5), type:'expense', account:'base', amount:2200, category:'Еда', note:'супермаркет'},
+        {id:uid(), date: isoShift(-4), type:'transfer', fromAccount:'base', toAccount:'save', amount:5000, category:'Перевод', note:'на подушку'},
+        {id:uid(), date: isoShift(-3), type:'expense', account:'fun', amount:3000, category:'Развлечения', note:'кино/бар'},
+        {id:uid(), date: isoShift(-2), type:'debt', amount:15000, account:'base', category:'Платёж по долгу', note:'погашение'},
+      ]
+    };
+    save(); renderAll(); toast('ok','Демо-данные загружены');
+  };
+  function isoShift(дней){ const d=new Дате(); d.setDate(d.getDate()+дней); return d.toISOString().slice(0,10); }
+
+  // --- Экспорт / Импорт / Очистка ---
+  $('#btnExport').onclick = () => {
+    const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `dm_fin_${new Дате().toISOString().slice(0,10)}.json`;
+    a.click(); URL.revokeObjectURL(a.href);
+  };
+  $('#btnImport').onclick = () => { $('#fileImport').click(); };
+  $('#fileImport').onchange = async (e) => {
+    const file = e.target.files[0];
+    if(!file) return;
+    try{
+      const text = await file.text();
+      const data = JSON.parse(text);
+      if(!data.settings || !data.transactions) throw new Error('Неверный формат файла');
+      state = data; save(); renderAll(); toast('ok','Импорт выполнен');
+      // При желании можно выгрузить в облако (опционально)
+    }catch(err){ toast('err','Ошибка импорта', err.message||String(err)); }
+    finally{ e.target.value=''; }
+  };
+  $('#btnWipe').onclick = () => {
+    if(confirm('Удалить все данные локально? Это действие необратимо.')){
+      localStorage.removeItem(LS_KEY);
+      state = load(); renderAll(); toast('ok','Локальная база очищена');
+    }
+  };
+
+  // --- Главный рендер ---
+  function renderAll(){ fillSettingsUI(); renderDashboard(); renderTable(); }
   renderAll();
+
+  // Начальное состояние «offline»
+  setSigned(false);
 })();
 </script>
 </body>
