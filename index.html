@@ -859,167 +859,148 @@ const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.ht
 
 
 <script>
-/* ============================================================
-   Dmitry Tracker — кастомные пикеры: месяц и дата
-   Без зависимостей. Стили берут цвета/радиусы из :root.
-   ============================================================ */
 (function(){
-  const $ = (s, r=document) => r.querySelector(s);
-  const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+  const $ = (s,r=document)=>r.querySelector(s);
+  const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
   const fmt2 = n => String(n).padStart(2,'0');
 
-  // ---------- УТИЛЫ ДЛЯ ПОПАПА ----------
+  /* ---------- базовые утилы попапа ---------- */
   function placePopup(pop, anchor){
-    const rect = anchor.getBoundingClientRect();
-    const top = rect.bottom + window.scrollY + 6;
-    const left = Math.min(
-      window.scrollX + rect.left,
+    const r = anchor.getBoundingClientRect();
+    pop.style.position = 'absolute';
+    pop.style.zIndex = 9999;
+    pop.style.top = (r.bottom + window.scrollY + 6) + 'px';
+    pop.style.left = Math.min(
+      window.scrollX + r.left,
       window.scrollX + document.documentElement.clientWidth - pop.offsetWidth - 8
-    );
-    pop.style.top = top + 'px';
-    pop.style.left = left + 'px';
+    ) + 'px';
   }
-  function closeOnOutside(pop, onClose){
-    const handler = (e)=>{ if(!pop.contains(e.target)) { pop.remove(); document.removeEventListener('mousedown', handler); onClose && onClose(); } };
-    setTimeout(()=>document.addEventListener('mousedown', handler),0);
+  function closeOnOutside(pop){ 
+    const h = (e)=>{ if(!pop.contains(e.target)) { pop.remove(); document.removeEventListener('mousedown', h); } };
+    setTimeout(()=>document.addEventListener('mousedown', h),0);
   }
-  function makeBtn(txt, cls='tp-btn'){ const b=document.createElement('button'); b.type='button'; b.className=cls; b.textContent=txt; return b; }
+  function btn(txt){ const b=document.createElement('button'); b.type='button'; b.className='tp-btn'; b.textContent=txt; return b; }
 
-  // ===========================================================
-  //  МЕСЯЦ-ПИКЕР для #fltMonth  (значение формата YYYY-MM)
-  // ===========================================================
+  /* ---------- стили каркаса (подключим 1 раз, если нет) ---------- */
+  if(!document.getElementById('tp-cal-styles')){
+    const css = `
+    .tp-pop{background:#fff;border:1px solid var(--line);border-radius:var(--radius);
+            box-shadow:var(--shadow);padding:12px;min-width:280px}
+    .tp-hdr{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+    .tp-hdr b{font-weight:600}
+    .tp-nav{display:inline-flex;gap:6px}
+    .tp-btn{display:inline-flex;align-items:center;justify-content:center;height:32px;min-width:32px;
+            padding:0 10px;border:1px solid var(--line);background:#fff;border-radius:8px;cursor:pointer;
+            transition:border-color .2s,color .2s,background .2s}
+    .tp-btn:hover{border-color:#d4e1ff;color:var(--accent);background:#f6f9ff}
+    .tp-grid{display:grid;gap:8px}
+    .tp-grid.mo{grid-template-columns:repeat(4,1fr)}
+    .tp-grid.dy{grid-template-columns:repeat(7,1fr)}
+    .tp-cell{display:flex;align-items:center;justify-content:center;height:36px;border:1px solid var(--line);
+            border-radius:8px;cursor:pointer;font-size:var(--fs-sm);transition:border-color .15s,color .15s,background .15s}
+    .tp-cell:hover{border-color:#d4e1ff;color:var(--accent);background:#f6f9ff}
+    .tp-cell.on{background:#eaf1ff;border-color:#d4e1ff;color:#1f4fbf;font-weight:700}
+    .tp-cell.muted{opacity:.5}
+    .tp-wn{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:6px}
+    .tp-wn span{font-size:var(--fs-sm);color:var(--muted);text-align:center}
+    .tp-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px}
+    .tp-link{font-size:var(--fs-sm);color:var(--accent);cursor:pointer}
+    .tp-link:hover{text-decoration:underline}`;
+    const style = document.createElement('style'); style.id='tp-cal-styles'; style.textContent = css;
+    document.head.appendChild(style);
+  }
+
+  /* ---------- Месяц-пикер (для #fltMonth) ---------- */
   const RU_MONTHS = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
-
   function openMonthPicker(input){
-    // Парсим текущее значение или берём сегодня
     const now = new Date();
-    let y = now.getFullYear(), m = now.getMonth();
-    if(input.value && /^\d{4}-\d{2}$/.test(input.value)){
-      const [Y,M] = input.value.split('-').map(Number);
-      y = Y; m = (M-1);
-    }
-    const pop = document.createElement('div'); pop.className='tp-pop'; pop.style.minWidth='320px';
+    let y = (input.value && /^\d{4}-\d{2}$/.test(input.value)) ? Number(input.value.slice(0,4)) : now.getFullYear();
+    let m = (input.value && /^\d{4}-\d{2}$/.test(input.value)) ? Number(input.value.slice(5,7)) - 1 : now.getMonth();
 
-    function render(){
-      pop.innerHTML = '';
+    const pop = document.createElement('div'); pop.className='tp-pop'; pop.style.minWidth='320px';
+    const render = ()=>{
+      pop.innerHTML='';
       const hdr = document.createElement('div'); hdr.className='tp-hdr';
       const title = document.createElement('b'); title.textContent = y;
       const nav = document.createElement('div'); nav.className='tp-nav';
-      const prev = makeBtn('←'); const next = makeBtn('→');
-      prev.onclick = ()=>{ y--; render(); }; next.onclick = ()=>{ y++; render(); };
+      const prev = btn('←'), next = btn('→');
+      prev.onclick = ()=>{y--; render();}; next.onclick = ()=>{y++; render();};
       nav.append(prev,next); hdr.append(title,nav); pop.appendChild(hdr);
 
       const grid = document.createElement('div'); grid.className='tp-grid mo';
-      RU_MONTHS.forEach((name, idx)=>{
-        const cell = document.createElement('div'); cell.className='tp-cell'; cell.textContent = name;
-        if(idx===m) cell.classList.add('on');
-        cell.onclick = ()=>{
+      RU_MONTHS.forEach((name,idx)=>{
+        const c = document.createElement('div'); c.className='tp-cell'; c.textContent=name;
+        if(idx===m) c.classList.add('on');
+        c.onclick = ()=>{
           input.value = `${y}-${fmt2(idx+1)}`;
-          // Тригерим перерисовки твоего приложения
-          input.dispatchEvent(new Event('input', {bubbles:true}));
-          input.dispatchEvent(new Event('change', {bubbles:true}));
+          input.dispatchEvent(new Event('input',{bubbles:true}));
+          input.dispatchEvent(new Event('change',{bubbles:true}));
           pop.remove();
         };
-        grid.appendChild(cell);
+        grid.appendChild(c);
       });
       pop.appendChild(grid);
 
       const foot = document.createElement('div'); foot.className='tp-foot';
-      const thisMonth = document.createElement('span'); thisMonth.className='tp-link'; thisMonth.textContent='В этом месяце';
-      thisMonth.onclick = ()=>{
-        const d=new Date(); input.value = `${d.getFullYear()}-${fmt2(d.getMonth()+1)}`;
-        input.dispatchEvent(new Event('input',{bubbles:true})); input.dispatchEvent(new Event('change',{bubbles:true}));
-        pop.remove();
-      };
       const clear = document.createElement('span'); clear.className='tp-link'; clear.textContent='Удалить';
       clear.onclick = ()=>{ input.value=''; input.dispatchEvent(new Event('input',{bubbles:true})); pop.remove(); };
-      foot.append(clear,thisMonth); pop.appendChild(foot);
-    }
+      const cur = document.createElement('span'); cur.className='tp-link'; cur.textContent='В этом месяце';
+      cur.onclick = ()=>{ const d=new Date(); input.value=`${d.getFullYear()}-${fmt2(d.getMonth()+1)}`; input.dispatchEvent(new Event('input',{bubbles:true})); input.dispatchEvent(new Event('change',{bubbles:true})); pop.remove(); };
+      foot.append(clear,cur); pop.appendChild(foot);
+    };
     render();
-
     document.body.appendChild(pop);
     placePopup(pop, input);
     closeOnOutside(pop);
   }
 
-  // Подменяем нативный month на текстовый с нашим попапом (чтобы не конфликтовал нативный календарь)
-  const monthInput = $('#fltMonth');
-  if(monthInput){
-    try{ monthInput.type = 'text'; }catch(e){}
-    monthInput.readOnly = true; // чтобы вызывался только наш попап
-    monthInput.addEventListener('focus', ()=> openMonthPicker(monthInput));
-    monthInput.addEventListener('click', ()=> openMonthPicker(monthInput));
-  }
-
-  // ===========================================================
-  //  ДАТА-ПИКЕР для полей дат (YYYY-MM-DD)
-  // ===========================================================
+  /* ---------- Дата-пикер (для #incDate/#expDate/#trDate/#debtDate) ---------- */
   const RU_WD = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
   const RU_FULLMONTH = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
-
-  function daysInMonth(y,m){ return new Date(y, m+1, 0).getDate(); } // m: 0..11
-  function firstWeekdayISO(y,m){ let d = new Date(y,m,1).getDay(); return d===0?7:d; } // 1..7 (Пн..Вс)
+  const dim = (y,m)=> new Date(y,m+1,0).getDate();
+  const firstISO = (y,m)=>{ let d=new Date(y,m,1).getDay(); return d===0?7:d; };
 
   function openDatePicker(input){
-    // Берём дату из инпута или сегодня
     const today = new Date();
-    let cur = (input.value && /^\d{4}-\d{2}-\d{2}$/.test(input.value)) ? new Date(input.value) : today;
+    const cur = (input.value && /^\d{4}-\d{2}-\d{2}$/.test(input.value)) ? new Date(input.value) : today;
     let y = cur.getFullYear(), m = cur.getMonth();
 
     const pop = document.createElement('div'); pop.className='tp-pop';
+    const setVal = (Y,M,D)=>{ input.value = `${Y}-${fmt2(M+1)}-${fmt2(D)}`; input.dispatchEvent(new Event('input',{bubbles:true})); input.dispatchEvent(new Event('change',{bubbles:true})); pop.remove(); };
 
-    function setValue(y,m,d){
-      input.value = `${y}-${fmt2(m+1)}-${fmt2(d)}`;
-      input.dispatchEvent(new Event('input',{bubbles:true}));
-      input.dispatchEvent(new Event('change',{bubbles:true}));
-      pop.remove();
-    }
-
-    function render(){
-      pop.innerHTML = '';
-
-      // Header
+    const render = ()=>{
+      pop.innerHTML='';
       const hdr = document.createElement('div'); hdr.className='tp-hdr';
       const title = document.createElement('b'); title.textContent = `${RU_FULLMONTH[m]} ${y}`;
       const nav = document.createElement('div'); nav.className='tp-nav';
-      const prev = makeBtn('←'); const next = makeBtn('→');
-      prev.onclick = ()=>{ m--; if(m<0){m=11; y--;} render(); };
-      next.onclick = ()=>{ m++; if(m>11){m=0; y++;} render(); };
+      const prev = btn('←'), next = btn('→');
+      prev.onclick=()=>{ m--; if(m<0){m=11;y--;} render(); };
+      next.onclick=()=>{ m++; if(m>11){m=0;y++;} render(); };
       nav.append(prev,next); hdr.append(title,nav); pop.appendChild(hdr);
 
-      // Week names
       const wn = document.createElement('div'); wn.className='tp-wn';
       RU_WD.forEach(w=>{ const s=document.createElement('span'); s.textContent=w; wn.appendChild(s); });
       pop.appendChild(wn);
 
-      // Grid days
       const grid = document.createElement('div'); grid.className='tp-grid dy';
-      const total = daysInMonth(y,m);
-      const start = firstWeekdayISO(y,m); // 1..7 (Пн..Вс)
-      // заполнение пустыми до первого дня
-      for(let i=1;i<start;i++){ const ph=document.createElement('div'); ph.className='tp-cell muted'; ph.style.visibility='hidden'; grid.appendChild(ph); }
-      for(let d=1; d<=total; d++){
-        const cell = document.createElement('div'); cell.className='tp-cell'; cell.textContent = d;
-        // выделяем выбранную/сегодня
-        if(input.value){
-          const sel = new Дате(input.value);
-          if(sel.getFullYear()===y && sel.getMonth()===m && sel.getDate()===d) cell.classList.add('on');
-        } else if(Сегодня.getFullYear()===y && Сегодня.getMonth()===m && Сегодня.getDate()===d){
-          cell.classList.add('on');
-        }
-        cell.onclick = ()=> setValue(y,m,d);
-        grid.appendChild(cell);
+      for(let i=1;i<firstISO(y,m);i++){ const ph=document.createElement('div'); ph.className='tp-cell muted'; ph.style.visibility='hidden'; grid.appendChild(ph); }
+      for(let d=1; d<=dim(y,m); d++){
+        const c=document.createElement('div'); c.className='tp-cell'; c.textContent=d;
+        const sel = (input.value && new Дате(input.value));
+        if( (sel && sel.getFullYear()===y && sel.getMonth()===m && sel.getDate()===d) ||
+            (!input.value && Сегодня.getFullYear()===y && Сегодня.getMonth()===m && Сегодня.getDate()===d) ) c.classList.add('on');
+        c.onclick = ()=> setVal(y,m,d);
+        grid.appendChild(c);
       }
       pop.appendChild(grid);
 
-      // Footer
       const foot = document.createElement('div'); foot.className='tp-foot';
-      const todayBtn = document.createElement('span'); todayBtn.className='tp-link'; todayBtn.textContent='Сегодня';
-      todayBtn.onclick = ()=> setValue(Сегодня.getFullYear(), Сегодня.getMonth(), Сегодня.getDate());
-      const clear = document.createElement('span'); clear.className='tp-link'; clear.textContent='Удалить';
-      clear.onclick = ()=>{ input.value=''; input.dispatchEvent(new Событие('input',{bubbles:true})); pop.remove(); };
-      foot.append(clear,todayBtn); pop.appendChild(foot);
-    }
+      const del = document.createElement('span'); del.className='tp-link'; del.textContent='Удалить';
+      del.onclick = ()=>{ input.value=''; input.dispatchEvent(new Событие('input',{bubbles:true})); pop.remove(); };
+      const td = document.createElement('span'); td.className='tp-link'; td.textContent='Сегодня';
+      td.onclick = ()=> setVal(Сегодня.getFullYear(), Сегодня.getMonth(), Сегодня.getDate());
+      foot.append(del,td); pop.appendChild(foot);
+    };
     render();
 
     document.body.appendChild(pop);
@@ -1027,27 +1008,30 @@ const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.ht
     closeOnOutside(pop);
   }
 
-  // Навешиваем на все поля дат из твоей формы
-  const dateInputs = ['#incDate','#expDate','#trDate','#debtDate'].map(sel=>$(sel)).filter(Boolean);
-  dateInputs.forEach(inp=>{
-    // меняем тип, чтобы нативный календарь не всплывал
-    try{ inp.type = 'text'; }catch(e){}
-    inp.readOnly = true;
-    // уже стоящее значение сохраняем (если было)
-    if(!/^\d{4}-\d{2}-\d{2}$/.test(inp.value || '')) {
-      const d = new Дате(); inp.value = `${d.getFullYear()}-${fmt2(d.getMonth()+1)}-${fmt2(d.getDate())}`;
-      inp.dispatchEvent(new Событие('input',{bubbles:true}));
-    }
-    inp.addEventListener('focus', ()=> openDatePicker(inp));
-    inp.addEventListener('click', ()=> openDatePicker(inp));
+  /* ---------- навешиваем, не меняя type ---------- */
+  const dateIds = ['#incDate','#expDate','#trDate','#debtDate'];
+  dateIds.forEach(sel=>{
+    const el = $(sel); if(!el) return;
+    el.setAttribute('data-tp','custom');        // для CSS
+    el.addEventListener('mousedown', (e)=>{ e.preventDefault(); openDatePicker(el); });
+    el.addEventListener('focus',      (e)=>{ e.preventDefault(); openDatePicker(el); el.blur(); });
   });
+
+  const monthEl = $('#fltMonth');
+  if(monthEl){
+    monthEl.setAttribute('data-tp','custom');
+    monthEl.addEventListener('mousedown', (e)=>{ e.preventDefault(); openMonthPicker(monthEl); });
+    monthEl.addEventListener('focus',      (e)=>{ e.preventDefault(); openMonthPicker(monthEl); monthEl.blur(); });
+  }
 })();
 </script>
 
 
 
+
 </body>
 </html>
+
 
 
 
