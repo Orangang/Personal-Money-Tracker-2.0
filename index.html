@@ -184,19 +184,6 @@ input[type="month"]::-webkit-date-and-time-value{ text-align:left }
   .user-panel{width:100%; justify-content:flex-start;}
 }
 
-/* стрелка у select: сдвиг и запас справа */
-select{
-  -webkit-appearance:none; -moz-appearance:none; appearance:none;
-  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M7 10l5 5 5-5' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>");
-  background-repeat:no-repeat;
-  background-position:right 12px center; /* ← двигай это значение (8–16px) */
-  background-size:16px 16px;
-  padding-right:40px; /* чтобы текст не упирался в иконку */
-}
-select::-ms-expand{display:none;} /* IE/Edge legacy */
-
-
-
 /* Только крестик — при наведении становится синим */
 #txTable button.ghost {
   color: inherit;
@@ -206,7 +193,6 @@ select::-ms-expand{display:none;} /* IE/Edge legacy */
   color: var(--accent); /* синий, как у кнопок */
 }
 
-
 /* скрыть только полосу прокрутки */
 html, body {
   scrollbar-width: none;      /* Firefox */
@@ -215,7 +201,9 @@ html, body {
 html::-webkit-scrollbar,
 body::-webkit-scrollbar {
   display: none;              /* Chrome / Safari */
-}   
+}
+
+
 </style>
 </head>
 <body>
@@ -224,8 +212,8 @@ body::-webkit-scrollbar {
   <!-- ВЕРХНЯЯ ПАНЕЛЬ -->
   <div class="page-header">
     <div class="info">
-      <h1>Персональный финансовый трекер</h1>
-      <div class="muted">Удобный вариант отслеживать свои доходы и расходы</div>
+      <h1>Личный финтрекер Дмитрия</h1>
+      <div class="muted">4 счёта + долг · персональные данные на Supabase</div>
     </div>
     <div class="user-panel">
       <span id="userEmail" class="userpill">—</span>
@@ -459,8 +447,8 @@ const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.ht
   const fmtRUB = n => (Number(n)||0).toLocaleString('ru-RU',{style:'currency',currency:'RUB',maximumFractionDigits:0});
   const fmtNum = (n,d=2) => (Number(n)||0).toLocaleString('ru-RU',{minimumFractionDigits:d,maximumFractionDigits:d});
   const clamp = (v,lo,hi)=>Math.max(lo,Math.min(hi,v));
-  const todayISO = () => new Дате().toISOString().slice(0,10);
-  const uid = () => Math.random().toString(36).slice(2,10) + Дате.now().toString(36).slice(-4);
+  const todayISO = () => new Date().toISOString().slice(0,10);
+  const uid = () => Math.random().toString(36).slice(2,10) + Date.now().toString(36).slice(-4);
 
   const LS_KEY = `dm_fin_v1_${USER_ID}`;
 
@@ -498,7 +486,7 @@ const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.ht
 
   function initMonthFilter(){
     const months = state.transactions.map(t => (t.date||'').slice(0,7)).filter(Boolean);
-    const def = months.length ? months.sort().slice(-1)[0] : new Date().toISOString().slice(0,7);
+    const def = months.length ? months.sort().slice(-1)[0] : new Дате().toISOString().slice(0,7);
     $('#fltMonth').value = def;
   }
   initMonthFilter();
@@ -814,11 +802,4 @@ const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.ht
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
 
