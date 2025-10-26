@@ -149,6 +149,7 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.html";
 const INDEX_URL = "https://orangang.github.io/Personal-Money-Tracker-2.0/index.html";
+const RESET_URL = "https://orangang.github.io/Personal-Money-Tracker-2.0/reset.html";
 
 /* ===== UI helpers ===== */
 const $ = (s, r=document) => r.querySelector(s);
@@ -275,12 +276,19 @@ $("#btnReset").onclick = async () => {
   hideMsg();
   const email = $("#login-email").value.trim();
   if(!email) return show("", "Укажите email и повторите.");
-  try{
-    const redirectTo = AUTH_URL + "#recovery";
-    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
-    if(error) throw error;
-    show("ok","Ссылка на смену пароля отправлена на " + email);
-  }catch(err){ show("err","Не удалось отправить письмо: " + err.message); }
+
+  try {
+    // новая ссылка на отдельную страницу сброса пароля
+    const RESET_URL = "https://orangang.github.io/Personal-Money-Tracker-2.0/reset.html";
+
+    // отправляем письмо с редиректом напрямую на reset.html
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: RESET_URL });
+    if (error) throw error;
+
+    show("ok", "Ссылка на форму сброса пароля отправлена на " + email);
+  } catch (err) {
+    show("err", "Не удалось отправить письмо: " + err.message);
+  }
 };
 
 /* ===== Экран сброса пароля после письма ===== */
