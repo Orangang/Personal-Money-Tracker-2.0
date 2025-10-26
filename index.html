@@ -14,9 +14,10 @@
   --radius:12px; --gap:16px; --shadow:0 2px 10px rgba(0,0,0,.06);
   --fs-base:clamp(14px,1.4vw,16px); --fs-sm:clamp(12px,1.2vw,14px); --fs-lg:clamp(16px,1.6vw,18px) }
 *{ box-sizing:border-box }
-body{ margin:0; background:var(--bg); color:var(--ink); font:400 var(--fs-base)/1.45 "SF Pro Display",-apple-system,system-ui,Segoe UI,Roboto,Inter,Arial,sans-serif }
+body{ margin:0; background:var(--bg); color:var(--ink);
+  font:400 var(--fs-base)/1.45 "SF Pro Display",-apple-system,system-ui,Segoe UI,Roboto,Inter,Arial,sans-serif }
 a{ color:var(--accent); text-decoration:none }
-.container{ max-width:1200px; margin:0 auto; padding:20px }
+.container{ max-width:1200px; margin:0 auto; padding:20px } /* как в твоём первом варианте */
 h1{ font-size:clamp(20px,2.6vw,28px); margin:0 0 12px; font-weight:600 }
 h2{ font-size:clamp(18px,2.2vw,22px); margin:0 0 12px; font-weight:600 }
 h3{ font-size:clamp(16px,2vw,20px); margin:0 0 10px; font-weight:600 }
@@ -26,7 +27,7 @@ h3{ font-size:clamp(16px,2vw,20px); margin:0 0 10px; font-weight:600 }
 .card{ background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:16px }
 .card-title{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; gap:8px }
 .badge{ font-size:var(--fs-sm); padding:2px 8px; border-radius:999px; background:#f2f6ff; border:1px solid #dbe7ff; color:#1f4fbf }
-.kpis{ display:grid; grid-template-columns:repeat(2,1fr); gap:12px }
+.kpis{ display:grid; grid-template-columns:repeat(2,1fr); gap:12px } /* KPI в две колонки, как было */
 .kpi{ padding:12px; border:1px solid var(--line); border-radius:10px }
 .kpi b{ font-size:var(--fs-lg) }
 .progress{ height:10px; background:#f1f1f1; border-radius:999px; overflow:hidden; border:1px solid var(--line) }
@@ -53,11 +54,11 @@ input[type="date"]::-webkit-date-and-time-value,input[type="month"]::-webkit-dat
 .card .card-title .controls button{ height:44px; min-height:44px; padding:0 16px; white-space:nowrap; flex:0 0 auto }
 
 /* Auth */
-#authCard .auth-wrap{ max-width:720px; margin:0 auto }
-.tabs{ display:flex; gap:6px; margin-bottom:10px }
-.tabs button{ background:#fff; border:1px solid var(--line); color:#111; padding:8px 14px; height:auto; border-radius:999px }
+#authCard .auth-wrap{ max-width:560px; margin:0 auto } /* сужаем и центрируем форму, как просил */
+.tabs{ display:flex; gap:8px; margin-bottom:8px }
+.tabs button{ background:#fff; border:1px solid var(--line); color:#111; padding:8px 16px; height:auto; border-radius:999px }
 .tabs button.active{ background:#eaf1ff; border-color:#d4e1ff; color:#1f4fbf; font-weight:700 }
-#authHelp{ margin-top:8px }
+#authHelp{ margin-top:10px }
 #authCard .controls{ margin-top:6px }
 
 /* Sign state */
@@ -86,7 +87,7 @@ body.signed #authCard{ display:none !important }
   <header style="margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; gap:12px">
     <div>
       <h1>Личный финтрекер Дмитрия</h1>
-      <div class="muted">Локально + облачная синхронизация • Supabase Auth • экспорт/импорт JSON</div>
+      <div class="muted">4 счёта + долг • локально, без бэкенда • экспорт/импорт JSON</div>
     </div>
     <div class="header-right">
       <span class="badge" id="authStatus">offline</span>
@@ -109,8 +110,13 @@ body.signed #authCard{ display:none !important }
       </div>
 
       <div class="row cols-4">
-        <label>E-mail <input type="email" id="authEmail" placeholder="you@example.com"></label>
-        <label>Пароль <input type="password" id="authPass" placeholder="••••••••"></label>
+        <label>E-mail
+          <input type="email" id="authEmail" placeholder="you@example.com"
+                 autocomplete="username email" autocapitalize="none" spellcheck="false">
+        </label>
+        <label>Пароль
+          <input type="password" id="authPass" placeholder="••••••••" autocomplete="current-password">
+        </label>
       </div>
 
       <div class="controls">
@@ -121,7 +127,7 @@ body.signed #authCard{ display:none !important }
 
       <div id="pwRecovery" style="display:none; margin-top:12px">
         <hr>
-        <label>Новый пароль <input type="password" id="newPass" placeholder="Новый пароль"></label>
+        <label>Новый пароль <input type="password" id="newPass" placeholder="Новый пароль" autocomplete="new-password"></label>
         <div class="controls"><button class="primary" id="btnSetNewPass">Сохранить пароль</button></div>
       </div>
     </div>
@@ -268,6 +274,34 @@ body.signed #authCard{ display:none !important }
     </div>
   </section>
 
+  <!-- SETTINGS (вернул блок как в исходнике) -->
+  <section class="card app-only" style="margin-top:16px">
+    <h2>Настройки</h2>
+    <div class="row cols-4">
+      <label>Базовый ₽ <input type="number" id="stBase" min="0" step="0.01"></label>
+      <label>Расходный ₽ <input type="number" id="stFixed" min="0" step="0.01"></label>
+      <label>Весёлый ₽ <input type="number" id="stFun" min="0" step="0.01"></label>
+      <label>Накопления ₽ <input type="number" id="stSave" min="0" step="0.01"></label>
+    </div>
+    <div class="row cols-4" style="margin-top:8px">
+      <label>Сумма долга ₽ <input type="number" id="stDebtTotal" min="0" step="0.01"></label>
+      <label>Уже погашено ₽ <input type="number" id="stDebtPaid" min="0" step="0.01"></label>
+      <label>Начало месяца (день) <input type="number" id="stMonthStart" min="1" max="28"></label>
+    </div>
+    <h3 style="margin-top:12px">Доли авто-раскидки дохода (%)</h3>
+    <div class="row cols-4">
+      <label>Базовый % <input type="number" id="spBase" min="0" max="100"></label>
+      <label>Расходный % <input type="number" id="spFixed" min="0" max="100"></label>
+      <label>Весёлый % <input type="number" id="spFun" min="0" max="100"></label>
+      <label>Накопления % <input type="number" id="spSave" min="0" max="100"></label>
+    </div>
+    <div class="help" id="splitSumHelp" style="margin-top:6px">Сумма долей должна быть 100%.</div>
+    <div class="controls">
+      <button class="primary" id="btnSaveSettings">Сохранить настройки</button>
+      <button class="ghost" id="btnFillDemo">Загрузить демо-данные</button>
+    </div>
+  </section>
+
   <footer class="app-only">v2 • локальное хранение + Supabase синк • сделано под тебя</footer>
 </div>
 
@@ -298,21 +332,38 @@ body.signed #authCard{ display:none !important }
   }
   setSigned(false);
 
+  // --------- AUTH UI
   let authMode='login';
+  const emailEl = ()=>$('#authEmail');
+  const passEl  = ()=>$('#authPass');
   function applyAuthMode(){
     $$('.tabs button').forEach(btn=>btn.classList.toggle('active', btn.dataset.mode===authMode));
     $('#btnPrimaryAuth').textContent = authMode==='login' ? 'Войти' : 'Зарегистрироваться';
     $('#authHelp').textContent = authMode==='login'
       ? 'Вход нужен, чтобы хранить данные в облаке и видеть их на любых устройствах.'
-      : 'Создайте аккаунт, затем войдите. Если требуется подтверждение, проверьте почту.';
+      : 'Создайте аккаунт, затем войдите.';
+    // Управляем автозаполнением и очищаем поля при переключении на регистрацию
+    if(authMode==='signup'){
+      emailEl().value=''; passEl().value='';
+      emailEl().setAttribute('autocomplete','off');
+      passEl().setAttribute('autocomplete','new-password');
+      emailEl().setAttribute('name','new-email'); // небольшая хитрость против менеджеров паролей
+      passEl().setAttribute('name','new-password');
+    }else{
+      emailEl().setAttribute('autocomplete','username email');
+      passEl().setAttribute('autocomplete','current-password');
+      emailEl().setAttribute('name','email'); passEl().setAttribute('name','password');
+    }
   }
   applyAuthMode();
   $$('.tabs button').forEach(b=> b.addEventListener('click',()=>{ authMode=b.dataset.mode; applyAuthMode(); }));
 
+  // --------- STATE
   let state=load();
   function load(){ try{const raw=localStorage.getItem(LS_KEY); if(raw) return JSON.parse(raw);}catch(e){} return { settings:{ accounts:{base:0,fixed:0,fun:0,save:0,debtTotal:0,debtPaid:0}, autosplit:{base:40,fixed:30,fun:10,save:20}, monthStartDay:1 }, transactions:[] }; }
   function save(){ localStorage.setItem(LS_KEY, JSON.stringify(state)); }
 
+  // --------- SUPABASE SYNC (как раньше)
   async function ensureProfileAndSettings(user){
     await supa.from('profiles').upsert({ id:user.id, email:user.email }, { onConflict:'id' });
     const { data: s } = await supa.from('settings').select('*').eq('user_id', user.id).maybeSingle();
@@ -333,6 +384,7 @@ body.signed #authCard{ display:none !important }
   async function deleteTxInCloud(id){ if(!CURRENT_USER) return; await supa.from('transactions').delete().eq('id',id); }
   async function maybeBootstrapCloudFromLocal(){ if(!CURRENT_USER) return; const {data:exists}=await supa.from('transactions').select('id').eq('user_id',CURRENT_USER.id).limit(1); if(!exists||exists.length===0){ if(state.transactions.length){ const bulk=state.transactions.map(t=>({id:t.id,user_id:CURRENT_USER.id,date:t.date,type:t.type,account:t.account||null,from_account:t.fromAccount||null,to_account:t.toAccount||null,amount:t.amount,category:t.category||null,note:t.note||null})); await supa.from('transactions').insert(bulk);} await saveSettingsToCloud(); } }
 
+  // --------- AUTH ACTIONS
   async function doLogin(email, pass){
     const {data,error} = await supa.auth.signInWithPassword({ email, password:pass });
     if(error) throw error; CURRENT_USER=data.user;
@@ -345,7 +397,7 @@ body.signed #authCard{ display:none !important }
     if(data.user){
       CURRENT_USER=data.user; await ensureProfileAndSettings(CURRENT_USER); await maybeBootstrapCloudFromLocal(); await loadFromCloud(); renderAll(); setSigned(true); toast('ok','Аккаунт создан и вход выполнен');
     }else{
-      authMode='login'; applyAuthMode(); $('#authEmail').value=email; toast('ok','Аккаунт создан','Проверьте почту (если требуется подтверждение), затем войдите.');
+      authMode='login'; applyAuthMode(); emailEl().value=email; toast('ok','Аккаунт создан','Проверьте почту (если требуется подтверждение), затем войдите.');
     }
   }
 
@@ -353,12 +405,12 @@ body.signed #authCard{ display:none !important }
     const id=e.target.id;
     try{
       if(id==='btnPrimaryAuth'){
-        const email=$('#authEmail').value.trim(); const pass=$('#authPass').value;
+        const email=emailEl().value.trim(); const pass=passEl().value;
         if(!email||!pass) return toast('warn','Нужно заполнить','E-mail и пароль обязательны.');
         if(authMode==='login') await doLogin(email,pass); else await doSignup(email,pass);
       }
       if(id==='btnReset'){
-        const email=$('#authEmail').value.trim(); if(!email) return toast('warn','Укажи e-mail для сброса');
+        const email=emailEl().value.trim(); if(!email) return toast('warn','Укажи e-mail для сброса');
         const {error}=await supa.auth.resetPasswordForEmail(email,{ redirectTo: location.origin + location.pathname + '#recovery' });
         if(error) throw error; toast('ok','Письмо отправлено','Проверь почту и перейди по ссылке.');
       }
@@ -366,14 +418,16 @@ body.signed #authCard{ display:none !important }
         const np=$('#newPass').value; if(!np||np.length<6) return toast('warn','Слабый пароль','Минимум 6 символов.');
         const {error}=await supa.auth.updateUser({ password:np }); if(error) throw error; $('#pwRecovery').style.display='none'; toast('ok','Пароль обновлён','Теперь войдите новой парой.');
       }
-      if(id==='btnSignOutHeader'){
-        await supa.auth.signOut(); CURRENT_USER=null; setSigned(false); toast('ok','Вы вышли из аккаунта');
-      }
     }catch(err){
       const msg=(err&&(err.message||err.error_description))||String(err);
       if(/Failed to fetch/i.test(msg)){ toast('err','Нет связи с Supabase','Проверь URL проекта, Redirect URLs и ключ ANON.'); }
       else{ toast('err','Ошибка',msg); }
     }
+  });
+  // Явный обработчик кнопки «Сменить аккаунт» (чтобы точно сработало везде)
+  $('#btnSignOutHeader').addEventListener('click', async ()=>{
+    try{ await supa.auth.signOut(); CURRENT_USER=null; setSigned(false); toast('ok','Вы вышли из аккаунта'); }
+    catch(err){ toast('err','Ошибка', err.message||String(err)); }
   });
 
   supa.auth.onAuthStateChange(async (event, session)=>{
@@ -383,8 +437,16 @@ body.signed #authCard{ display:none !important }
     if(CURRENT_USER){ try{ await ensureProfileAndSettings(CURRENT_USER); await loadFromCloud(); renderAll(); } catch(err){ toast('err','Ошибка загрузки', err.message||String(err)); } }
   });
 
-  // tracker UI minimal for demo (settings fields intentionally not displayed to shorten file)
+  // --------- TRACKER UI (как в исходнике)
+  function cap(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+  function updateSplitSumHelp(){
+    const sum = ['base','fixed','fun','save'].reduce((s,k)=>s+Number($('#sp'+cap(k)).value||0),0);
+    $('#splitSumHelp').textContent = 'Сумма долей: '+sum+'% (должно быть 100%).';
+    $('#splitSumHelp').style.color = (sum===100)? 'var(--muted)' : 'var(--bad)';
+  }
+
   $('#incDate').value=todayISO(); $('#expDate').value=todayISO(); $('#trDate').value=todayISO(); $('#debtDate').value=todayISO(); $('#fltMonth').value=new Date().toISOString().slice(0,7);
+  ['spBase','spFixed','spFun','spSave'].forEach(id => { document.getElementById(id).addEventListener('input', updateSplitSumHelp); });
 
   function renderDashboard(){
     $('#currentMonthBadge').textContent=monthStr(new Date());
@@ -424,9 +486,7 @@ body.signed #authCard{ display:none !important }
     list = list.filter(t => (t.date||'').startsWith(month));
     if(tp) list = list.filter(t => t.type===tp);
     if(acc){
-      list = list.filter(t => {
-        return t.account===acc || t.fromAccount===acc || t.toAccount===acc;
-      });
+      list = list.filter(t => t.account===acc || t.fromAccount===acc || t.toAccount===acc);
     }
     if(q){
       list = list.filter(t => ((t.category||'')+(t.note||'')).toLowerCase().includes(q));
@@ -454,13 +514,11 @@ body.signed #authCard{ display:none !important }
     }
 
     $('#listInfo').textContent = 'Показано: '+list.length+' операций. Всего в базе: '+state.transactions.length+'.';
-    $$('button[data-del]').forEach(btn=>{
+    $$( 'button[data-del]' ).forEach(btn=>{
       btn.onclick = async () => {
         const id = btn.getAttribute('data-del');
         state.transactions = state.transactions.filter(t=>t.id!==id);
-        save();
-        renderAll();
-        await deleteTxInCloud(id);
+        save(); renderAll(); await deleteTxInCloud(id);
       };
     });
   }
@@ -468,7 +526,40 @@ body.signed #authCard{ display:none !important }
   function labelAcc(k){ return ({base:'Базовый', fixed:'Расходный', fun:'Весёлый', save:'Накопления'})[k] || '—'; }
   function labelType(t){ return ({income:'Доход', expense:'Расход', transfer:'Перевод', debt:'Долг'})[t] || t; }
 
-  function renderAll(){ renderDashboard(); renderTable(); }
+  function renderAll(){ // + подстановка в настройки
+    renderDashboard(); renderTable();
+    const A=state.settings.accounts;
+    $('#stBase').value=A.base; $('#stFixed').value=A.fixed; $('#stFun').value=A.fun; $('#stSave').value=A.save;
+    $('#stDebtTotal').value=A.debtTotal; $('#stDebtPaid').value=A.debtPaid; $('#stMonthStart').value=state.settings.monthStartDay;
+    $('#spBase').value=state.settings.autosplit.base; $('#spFixed').value=state.settings.autosplit.fixed; $('#spFun').value=state.settings.autosplit.fun; $('#spSave').value=state.settings.autosplit.save;
+    updateSplitSumHelp();
+  }
+
+  // simple settings save
+  document.getElementById('btnSaveSettings').addEventListener('click', async()=>{
+    const A=state.settings.accounts;
+    A.base=Number($('#stBase').value||0); A.fixed=Number($('#stFixed').value||0);
+    A.fun=Number($('#stFun').value||0); A.save=Number($('#stSave').value||0);
+    A.debtTotal=Number($('#stDebtTotal').value||0); A.debtPaid=Number($('#stDebtPaid').value||0);
+    state.settings.autosplit={ base:Number($('#spBase').value||0), fixed:Number($('#spFixed').value||0), fun:Number($('#spFun').value||0), save:Number($('#spSave').value||0) };
+    state.settings.monthStartDay=Number($('#stMonthStart').value||1);
+    save(); await saveSettingsToCloud(); renderAll(); toast('ok','Настройки сохранены');
+  });
+
+  // demo
+  document.getElementById('btnFillDemo').addEventListener('click', ()=>{
+    state = {
+      settings:{
+        accounts:{ base:52000, fixed:36500, fun:12500, save:56000, debtTotal:300000, debtPaid:70000 },
+        autosplit:{ base:40, fixed:30, fun:10, save:20 },
+        monthStartDay:1
+      },
+      transactions:[]
+    };
+    save(); renderAll();
+  });
+
+  // init
   renderAll();
 })();
 </script>
