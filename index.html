@@ -197,6 +197,16 @@ select::-ms-expand{display:none;} /* IE/Edge legacy */
 
 
 
+/* Только крестик — при наведении становится синим */
+#txTable button.ghost {
+  color: inherit;
+  transition: color .2s ease;
+}
+#txTable button.ghost:hover {
+  color: var(--accent); /* синий, как у кнопок */
+}
+
+
    
 </style>
 </head>
@@ -796,5 +806,6 @@ const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.ht
 </script>
 </body>
 </html>
+
 
 
