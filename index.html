@@ -76,6 +76,124 @@ body.signed #authCard{ display:none !important }
 .header-right{ display:flex; align-items:center; gap:8px }
 </style>
 
+
+
+
+
+
+<style>
+/* === 1) СЕТКИ И ОТСТУПЫ — как в самом первом варианте === */
+
+/* KPI: 2 колонки (1 на мобиле) */
+.kpis{ display:grid; gap:12px; grid-template-columns:1fr 1fr; }
+@media (max-width:639.98px){ .kpis{ grid-template-columns:1fr; } }
+
+/* Общая грид-утилита: делаем её более явной, чтобы ничего не «расползалось» */
+.row{ display:grid; gap:var(--gap); }
+.row.cols-2{ grid-template-columns:1fr; }
+.row.cols-3{ grid-template-columns:1fr; }
+.row.cols-4{ grid-template-columns:1fr; }
+@media (min-width:640px){
+  .row.cols-2{ grid-template-columns:1fr 1fr; }
+  .row.cols-3{ grid-template-columns:1fr 1fr; } /* планшет — по 2 */
+  .row.cols-4{ grid-template-columns:1fr 1fr 1fr 1fr; }
+}
+@media (min-width:960px){
+  .row.cols-3{ grid-template-columns:1fr 1fr 1fr; } /* десктоп — по 3 */
+}
+
+/* Карточки счётов — 5 в ряд на десктопе, иначе авто */
+.grid-accounts{ display:grid; gap:12px; grid-template-columns:1fr 1fr; }
+@media (min-width:640px){ .grid-accounts{ grid-template-columns:repeat(5,1fr);} }
+@media (max-width:639.98px){ .grid-accounts{ grid-template-columns:1fr 1fr;} }
+
+/* Единые вертикальные интервалы между секциями */
+section.card{ margin-top:0; }
+section.card + section.card{ margin-top:16px; }
+
+/* === 2) РАЗМЕРЫ И ВЫСОТЫ КОНТРОЛОВ (Дата/Месяц/Select/Кнопки) === */
+
+label > :is(input,select,textarea){ margin-top:6px; }   /* отступ между подписью и полем */
+
+input, select, textarea{
+  width:100%;
+  min-height:48px;
+  padding:12px 14px;
+  border:1px solid var(--line);
+  border-radius:8px;
+  background:#fff;
+  color:#111;
+  font:inherit;
+}
+
+/* Дата/месяц — как обычные поля (не уже и не длиннее) */
+input[type="date"], input[type="month"]{
+  -webkit-appearance:none; appearance:none;
+  width:100%;
+  min-height:48px;
+  line-height:1.2;
+  padding:12px 14px;
+}
+input[type="date"]::-webkit-date-and-time-value,
+input[type="month"]::-webkit-date-and-time-value{ text-align:left }
+
+/* Select — та же высота везде (Тип/Счёт/Откуда/Куда) */
+select{ -webkit-appearance:none; appearance:none; min-height:48px; }
+
+/* Кнопки — единая высота (включая «Экспорт/Импорт/Стереть всё») */
+button{ height:44px; min-height:44px; padding:0 16px; display:inline-flex; align-items:center; justify-content:center; line-height:1; }
+.card .card-title .controls{ display:flex; gap:8px; flex-wrap:nowrap; }
+@media (max-width:640px){
+  .card .card-title{ flex-direction:column; align-items:flex-start; gap:6px; }
+  .card .card-title .controls{ width:100%; overflow:auto; }
+  .card .card-title .controls button{ white-space:nowrap; flex:0 0 auto; }
+  input, select, textarea{ font-size:16px; } /* анти-зум iOS */
+}
+
+/* === 3) ЭКРАН ВХОДА/РЕГИСТРАЦИИ — центр, аккуратный «шейп» === */
+#authCard{ padding:0; }                               /* чистый контейнер */
+#authCard .auth-wrap{
+  max-width:560px;                                   /* ширина блока формы */
+  margin:0 auto;                                     /* по центру карточки */
+  padding:24px;                                      /* одинаковые поля внутри */
+}
+#authCard .card-title{ justify-content:center; }
+#authCard h2{ margin:0 0 10px; text-align:center; }
+#authCard .tabs{ justify-content:center; }
+#authCard .controls{ justify-content:center; }
+#authHelp{
+  text-align:center;
+  font-size:var(--fs-sm);
+  color:var(--muted);
+  margin-top:10px;
+}
+
+/* На форме входа — не нужно 4 колонки. Делаем 1 на мобиле и 2 на >=640px */
+#authCard .row.cols-4{ grid-template-columns:1fr; }
+@media (min-width:640px){
+  #authCard .row.cols-4{ grid-template-columns:1fr 1fr; }
+}
+
+/* Табы как «чипы» */
+.tabs{ display:flex; gap:8px; margin-bottom:8px; }
+.tabs button{ background:#fff; border:1px solid var(--line); color:#111; padding:8px 16px; height:auto; border-radius:999px; }
+.tabs button.active{ background:#eaf1ff; border-color:#d4e1ff; color:#1f4fbf; font-weight:700; }
+
+/* === 4) Подправим «жирность» заголовков на мобайле (чтобы не казалось толще) === */
+h1, h2, h3{
+  font-weight:600;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  font-synthesis:none;
+}
+</style>
+
+
+
+
+
+  
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
   window.SUPABASE_URL = "https://zqoobfeogfiehutdzsbg.supabase.co";
@@ -565,3 +683,4 @@ body.signed #authCard{ display:none !important }
 </script>
 </body>
 </html>
+
