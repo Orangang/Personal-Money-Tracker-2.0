@@ -24,11 +24,12 @@ a:hover{text-decoration:underline}
 
 /* центровка формы */
 .wrap{
-  min-height:100%;
-  display:grid;
-  place-items:center;
+  min-height:100vh;          /* обычный vh */
+  min-height:100dvh;         /* стабильный vh в моб. браузерах */
+  display:flex;              /* надёжная центровка */
+  align-items:center;
+  justify-content:center;
   padding:20px;
-  justify-items:center;
 }
 
 /* карточка */
@@ -39,6 +40,7 @@ a:hover{text-decoration:underline}
   border-radius:var(--radius);
   box-shadow:var(--shadow);
   padding:22px 20px;
+  margin:0 auto;             /* держит центр даже при странных вьюпортах */
 }
 
 /* заголовок */
