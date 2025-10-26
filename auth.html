@@ -6,12 +6,14 @@
 <title>Вход — Dmitry Money Tracker</title>
 <link rel="shortcut icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64'><text y='50%' x='50%' dominant-baseline='middle' text-anchor='middle' font-size='42'>₽</text></svg>">
 
-<style>
+/* ====== AUTH styles (Вход / Регистрация) ====== */
 :root{
   --bg:#f6f7fb; --card:#ffffff; --ink:#111; --muted:#6b7280; --line:#e5e7eb;
   --accent:#2d6cdf; --accent-100:#eef3ff; --radius:14px; --shadow:0 10px 30px rgba(0,0,0,.06);
-  --fs-base:clamp(14px,1.2vw,16px); --fs-sm:clamp(12px,1.1vw,14px)
+  --fs-base:clamp(14px,1.2vw,16px); --fs-sm:clamp(12px,1.1vw,14px);
 }
+
+/* base */
 *{box-sizing:border-box}
 html,body{height:100%}
 body{
@@ -20,64 +22,115 @@ body{
 }
 a{color:var(--accent); text-decoration:none}
 a:hover{text-decoration:underline}
-.wrap{min-height:100%; display:grid; place-items:center; padding:20px}
 
-/* карточка стала уже */
+/* центровка формы на любом экране */
+.wrap{
+  min-height:100%;
+  display:grid;
+  place-items:center;
+  padding:20px;
+  justify-items:center;
+}
+
+/* карточка уже и аккуратнее */
 .card{
   width:min(480px,94vw);
-  background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
-  box-shadow:var(--shadow); padding:22px 20px;
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:22px 20px;
 }
 
-/* заголовок по центру + большой нижний отступ */
+/* заголовок по центру, больше отступ снизу */
 header{display:block; margin-bottom:18px}
-h1{margin:0; text-align:center; font-size:clamp(18px,2.4vw,22px); font-weight:700}
+h1{
+  margin:0; text-align:center;
+  font-size:clamp(18px,2.4vw,22px);
+  font-weight:700;
+}
 
+/* табы компактные */
 .tabs{display:flex; gap:8px; margin:8px 0 14px}
 .tab{
-  flex:1; text-align:center; border:1px solid var(--line); border-radius:10px;
-  padding:8px 12px; cursor:pointer; user-select:none; font-weight:600;
+  flex:1; text-align:center;
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:8px 12px;
+  cursor:pointer; user-select:none;
+  font-weight:600;
 }
-.tab[aria-selected="true"]{border-color:#2d6cdf; background:#2d6cdf; color:#fff}
+.tab[aria-selected="true"]{
+  border-color:#2d6cdf; background:#2d6cdf; color:#fff;
+}
 
+/* подписи и инпуты компактнее */
 label{
   font-size:var(--fs-sm); color:var(--muted);
-  display:flex; flex-direction:column; gap:8px; margin-bottom:10px;
+  display:flex; flex-direction:column; gap:8px;
+  margin-bottom:10px;
 }
-/* инпуты стали компактнее */
 input{
-  width:100%; min-height:42px; padding:10px 12px;
-  border:1px solid var(--line); border-radius:10px; font:inherit;
+  width:100%; min-height:42px;
+  padding:10px 12px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  font:inherit;
 }
 
 /* кнопки компактнее */
 .actions{display:flex; gap:8px; flex-wrap:wrap; margin-top:8px}
 button{
-  min-height:40px; padding:8px 14px; border-radius:10px;
-  border:1px solid #d4e1ff; background:#eaf1ff; color:#1f4fbf; font-weight:700; cursor:pointer;
+  min-height:40px; padding:8px 14px;
+  border-radius:10px; border:1px solid #d4e1ff;
+  background:#eaf1ff; color:#1f4fbf;
+  font-weight:700; cursor:pointer;
 }
 button.primary{border-color:#2d6cdf; background:#2d6cdf; color:#fff}
 button.ghost{background:#fff; border-color:var(--line); color:#1f1f1f}
 
-/* «Забыли пароль…» — больше воздуха */
+/* «Забыли пароль?» — больше воздуха */
 .help{color:var(--muted); font-size:var(--fs-sm)}
 .help.block{display:block; padding:8px 0 10px}
 
-/* прочее */
-.hr{height:1px; background:var(--line); margin:12px 0}
-.alert{padding:10px 12px; border:1px solid #e5e7eb; background:#f9fafb; border-radius:10px; font-size:var(--fs-sm); color:#374151}
+/* разделитель 50% ширины, по центру и с большим отступом сверху */
+.hr{
+  width:50%;
+  height:1px;
+  background:var(--line);
+  margin:24px auto 12px;
+}
+
+/* прячем инфо-блок про index.html/Supabase, если он есть в разметке */
+.info-block{display:none}
+
+/* нотификации */
+.alert{
+  padding:10px 12px;
+  border:1px solid #e5e7eb;
+  background:#f9fafb;
+  border-radius:10px;
+  font-size:var(--fs-sm);
+  color:#374151;
+}
 .alert.ok{border-color:#c6f1d3; background:#ecfdf5; color:#065f46}
 .alert.err{border-color:#ffd6d6; background:#fff1f1; color:#991b1b}
-footer{margin-top:14px; text-align:center; color:var(--muted); font-size:var(--fs-sm)}
+
+footer{
+  margin-top:14px;
+  text-align:center;
+  color:var(--muted);
+  font-size:var(--fs-sm);
+}
 .hidden{display:none!important}
 
-/* адаптив — чуть плотнее отступы на совсем узких */
+/* Адаптив — плотнее отступы и стабильная центровка */
 @media (max-width:420px){
-  .card{padding:18px 16px}
+  .card{padding:18px 16px; margin:0 auto;}
   .tabs{gap:6px}
   .tab{padding:7px 10px}
 }
-</style>
+
 </head>
 <body>
 <div class="wrap">
@@ -120,9 +173,6 @@ footer{margin-top:14px; text-align:center; color:var(--muted); font-size:var(--f
       <label>Новый пароль <input type="password" id="rec-pass" minlength="6" required></label>
       <div class="actions"><button class="primary" id="btnSetNew">Обновить пароль</button></div>
     </div>
-
-    <div class="hr"></div>
-    <div class="help">После входа — редирект в <code>index.html</code>. Сессия хранится в Supabase и localStorage.</div>
 
     <footer>сделано руками <a href="https://dmitry-design.ru/" target="_blank" rel="noopener">dmitry-design.ru</a></footer>
   </div>
