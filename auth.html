@@ -11,8 +11,6 @@
   --accent:#2d6cdf; --accent-100:#eef3ff; --radius:14px; --shadow:0 10px 30px rgba(0,0,0,.06);
   --fs-base:clamp(14px,1.2vw,16px); --fs-sm:clamp(12px,1.1vw,14px);
 }
-
-/* base */
 *{box-sizing:border-box}
 html,body{height:100%}
 body{
@@ -21,124 +19,32 @@ body{
 }
 a{color:var(--accent); text-decoration:none}
 a:hover{text-decoration:underline}
-
-/* центровка формы */
-.wrap{
-  min-height:100vh;          /* обычный vh */
-  min-height:100dvh;         /* стабильный vh в моб. браузерах */
-  display:flex;              /* надёжная центровка */
-  align-items:center;
-  justify-content:center;
-  padding:20px;
-}
-
-/* карточка */
-.card{
-  width:min(480px,94vw);
-  background:var(--card);
-  border:1px solid var(--line);
-  border-radius:var(--radius);
-  box-shadow:var(--shadow);
-  padding:22px 20px;
-  margin:0 auto;             /* держит центр даже при странных вьюпортах */
-}
-
-/* заголовок */
+.wrap{min-height:100vh; min-height:100dvh; display:flex; align-items:center; justify-content:center; padding:20px;}
+.card{width:min(480px,94vw); background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:22px 20px; margin:0 auto;}
 header{display:block; margin-bottom:18px}
-h1{
-  margin:0; text-align:center;
-  font-size:clamp(18px,2.4vw,22px);
-  font-weight:700;
-}
-
-/* табы */
+h1{margin:0; text-align:center; font-size:clamp(18px,2.4vw,22px); font-weight:700;}
 .tabs{display:flex; gap:8px; margin:8px 0 14px}
-.tab{
-  flex:1; text-align:center;
-  border:1px solid var(--line);
-  border-radius:10px;
-  padding:8px 12px;
-  cursor:pointer; user-select:none;
-  font-weight:600;
-}
-.tab[aria-selected="true"]{
-  border-color:#2d6cdf; background:#2d6cdf; color:#fff;
-}
-
-/* инпуты и подписи */
-label{
-  font-size:var(--fs-sm); color:var(--muted);
-  display:flex; flex-direction:column; gap:8px;
-  margin-bottom:10px;
-}
-input{
-  width:100%; min-height:42px;
-  padding:10px 12px;
-  border:1px solid var(--line);
-  border-radius:10px;
-  font:inherit;
-}
-
-/* кнопки */
-button{
-  border-radius:10px; border:1px solid #d4e1ff;
-  background:#eaf1ff; color:#1f4fbf;
-  font-weight:700; cursor:pointer;
-  transition:border-color .2s ease,background .2s ease;
-}
-button.primary{
-  border-color:#2d6cdf; background:#2d6cdf; color:#fff;
-}
-button.ghost{
-  background:#fff; border-color:var(--line); color:#1f1f1f;
-}
-
-/* кнопки: вход — две равные, + воздух */
+.tab{flex:1; text-align:center; border:1px solid var(--line); border-radius:10px; padding:8px 12px; cursor:pointer; user-select:none; font-weight:600;}
+.tab[aria-selected="true"]{border-color:#2d6cdf; background:#2d6cdf; color:#fff;}
+label{font-size:var(--fs-sm); color:var(--muted); display:flex; flex-direction:column; gap:8px; margin-bottom:10px;}
+input{width:100%; min-height:42px; padding:10px 12px; border:1px solid var(--line); border-radius:10px; font:inherit;}
+button{border-radius:10px; border:1px solid #d4e1ff; background:#eaf1ff; color:#1f4fbf; font-weight:700; cursor:pointer; transition:border-color .2s,background .2s;}
+button.primary{border-color:#2d6cdf; background:#2d6cdf; color:#fff;}
+button.ghost{background:#fff; border-color:var(--line); color:#1f1f1f;}
 .actions.two{ display:flex; gap:8px; flex-wrap:nowrap; margin-top:16px; }
 .actions.two button{ flex:1 1 0; min-height:42px; padding:10px 12px; }
-
-/* регистрация — одна длинная */
 .actions.single{ margin-top:12px; }
 .actions.single button{ width:100%; min-height:42px; padding:10px 12px; }
-
-/* линии под кнопками */
-.form-hr{
-  width:100%;
-  height:1px;
-  background:var(--line);
-  margin:14px auto 0;
-}
-.form-hr.login{  margin:18px auto 0; }  /* чуть больше воздуха на входе */
+.form-hr{width:100%; height:1px; background:var(--line); margin:14px auto 0;}
+.form-hr.login{  margin:18px auto 0; }
 .form-hr.signup{ margin:14px auto 0; }
-
-/* текст-помощь */
 .help{color:var(--muted); font-size:var(--fs-sm); text-align:left; margin-top:8px}
-.help.center{
-  text-align:center;
-  margin-top:12px;
-}
-
-/* alerts */
-.alert{
-  padding:10px 12px;
-  border:1px solid #e5e7eb;
-  background:#f9fafb;
-  border-radius:10px;
-  font-size:var(--fs-sm);
-  color:#374151;
-}
+.help.center{text-align:center; margin-top:12px;}
+.alert{padding:10px 12px; border:1px solid #e5e7eb; background:#f9fafb; border-radius:10px; font-size:var(--fs-sm); color:#374151;}
 .alert.ok{border-color:#c6f1d3; background:#ecfdf5; color:#065f46}
 .alert.err{border-color:#ffd6d6; background:#fff1f1; color:#991b1b}
-
-footer{
-  margin-top:14px;
-  text-align:center;
-  color:var(--muted);
-  font-size:var(--fs-sm);
-}
+footer{margin-top:14px; text-align:center; color:var(--muted); font-size:var(--fs-sm);}
 .hidden{display:none!important}
-
-/* адаптив */
 @media (max-width:420px){
   .card{padding:18px 16px; margin:0 auto;}
   .tabs{gap:6px}
@@ -194,18 +100,24 @@ footer{
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+/* --- Конфиг Supabase --- */
 const SUPABASE_URL = "https://hxbrvnwukieluzlffgyr.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh4YnJ2bnd1a2llbHV6bGZmZ3lyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE0NTM1NDMsImV4cCI6MjA3NzAyOTU0M30.IWViKSutxlXo1R3DqArijjeseK6nQ9m55ZPe5EUToLQ";
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+/* URL’ы приложения */
 const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.html";
 const INDEX_URL = "https://orangang.github.io/Personal-Money-Tracker-2.0/index.html";
 
+/* Утилиты */
 const $ = (s, r=document) => r.querySelector(s);
 const msg = $("#msg");
 function show(type, text){ msg.className = "alert " + (type||""); msg.textContent = text; msg.classList.remove("hidden"); }
 function hideMsg(){ msg.classList.add("hidden"); }
+function switchToLogin(){ tabLogin.click(); }
+function switchToSignup(){ tabSignup.click(); }
 
+/* Таб-кнопки/формы */
 const tabLogin = $("#tab-login");
 const tabSignup = $("#tab-signup");
 const frmLogin = $("#login");
@@ -232,7 +144,7 @@ tabSignup.onclick = () => {
   hideMsg();
 };
 
-// если уже авторизован — сразу в трекер
+/* Если уже авторизован — сразу в трекер */
 (async () => {
   const { data: { session } } = await supabase.auth.getSession();
   if(session && session.user){
@@ -241,29 +153,31 @@ tabSignup.onclick = () => {
   }
 })();
 
-// регистрация
+/* Регистрация с явным редиректом и сохранением одноразовых данных */
 frmSignup.addEventListener("submit", async (e) => {
   e.preventDefault(); hideMsg();
   const email = $("#signup-email").value.trim();
   const password = $("#signup-pass").value.trim();
   try {
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    // 1) сохраним «ожидающие» данные в sessionStorage (живут до закрытия вкладки)
+    sessionStorage.setItem("dm_pending_email", email);
+    sessionStorage.setItem("dm_pending_pass", password);
+
+    // 2) отправим регистрацию с корректным редиректом обратно на auth.html
+    const { data, error } = await supabase.auth.signUp({
+      email, password,
+      options:{ emailRedirectTo: AUTH_URL + "#confirm" } // <- ключевой момент
+    });
     if(error) throw error;
-    show("ok","Аккаунт создан, проверяем сессию…");
-    setTimeout(async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if(session && session.user){
-        localStorage.setItem("dm_user_id", session.user.id);
-        await ensureUserRow(session.user.id, session.user.email);
-        location.href = INDEX_URL;
-      } else {
-        show("", "Проверьте почту для подтверждения и войдите повторно.");
-      }
-    }, 700);
-  } catch(err){ show("err","Ошибка регистрации: " + err.message); }
+
+    // 3) подсказка пользователю
+    show("ok","Аккаунт создан. Проверьте почту и подтвердите адрес — затем вернитесь сюда.");
+  } catch(err){
+    show("err","Ошибка регистрации: " + err.message);
+  }
 });
 
-// вход
+/* Вход */
 frmLogin.addEventListener("submit", async (e) => {
   e.preventDefault(); hideMsg();
   const email = $("#login-email").value.trim();
@@ -274,11 +188,14 @@ frmLogin.addEventListener("submit", async (e) => {
     const user = data.user;
     localStorage.setItem("dm_user_id", user.id);
     await ensureUserRow(user.id, user.email);
+    // очистим одноразовые
+    sessionStorage.removeItem("dm_pending_email");
+    sessionStorage.removeItem("dm_pending_pass");
     location.href = INDEX_URL;
   } catch(err){ show("err","Ошибка входа: " + err.message); }
 });
 
-// сброс пароля
+/* Сброс пароля */
 $("#btnReset").onclick = async () => {
   hideMsg();
   const email = $("#login-email").value.trim();
@@ -291,7 +208,7 @@ $("#btnReset").onclick = async () => {
   }catch(err){ show("err","Не удалось отправить письмо: " + err.message); }
 };
 
-// восстановление пароля
+/* Экран восстановления пароля (после redirectTo из письма) */
 async function handleRecovery(){
   if(location.hash !== "#recovery") return;
   hideMsg();
@@ -308,6 +225,7 @@ async function handleRecovery(){
 }
 handleRecovery();
 
+/* Установка нового пароля */
 $("#btnSetNew").onclick = async () => {
   const pass = $("#rec-pass").value.trim();
   if(pass.length < 6) return show("", "Пароль должен быть не короче 6 символов.");
@@ -319,7 +237,44 @@ $("#btnSetNew").onclick = async () => {
   }catch(err){ show("err","Ошибка обновления пароля: " + err.message); }
 };
 
-// создание строки пользователя в БД
+/* Поток подтверждения почты: #confirm */
+async function handleConfirmFlow(){
+  if(location.hash !== "#confirm") return;
+  // Переключаем на «Вход»
+  switchToLogin();
+  authTitle.textContent = "Вход";
+  // Сообщим пользователю
+  show("ok","Email подтверждён. Выполняем вход…");
+
+  // Попробуем автоматический вход, если сохранили данные до подтверждения
+  const email = sessionStorage.getItem("dm_pending_email");
+  const pass  = sessionStorage.getItem("dm_pending_pass");
+
+  if(email){ $("#login-email").value = email; }
+  if(pass){  $("#login-pass").value  = pass;  }
+
+  if(email && pass){
+    try{
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
+      if(error) throw error;
+      const user = data.user;
+      localStorage.setItem("dm_user_id", user.id);
+      await ensureUserRow(user.id, user.email);
+      sessionStorage.removeItem("dm_pending_email");
+      sessionStorage.removeItem("dm_pending_pass");
+      location.href = INDEX_URL;
+      return;
+    }catch(err){
+      // если автоматический вход не удался — просто покажем поля с заполненными данными
+      show("","Подтверждение прошло. Проверьте пароль и нажмите «Войти».");
+    }
+  } else {
+    show("","Подтверждение прошло. Введите пароль и войдите.");
+  }
+}
+handleConfirmFlow();
+
+/* Создание/обновление строки пользователя в БД */
 async function ensureUserRow(userId, email){
   try{
     const { data: rows, error: selErr } = await supabase
@@ -336,6 +291,7 @@ async function ensureUserRow(userId, email){
   }catch(err){ console.warn("ensureUserRow:", err.message); }
 }
 
+/* Подхватим смену состояния (на всякий) */
 supabase.auth.onAuthStateChange((_event, session) => {
   if(session && session.user) localStorage.setItem("dm_user_id", session.user.id);
 });
