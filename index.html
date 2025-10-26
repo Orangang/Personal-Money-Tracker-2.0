@@ -183,6 +183,37 @@ input[type="month"]::-webkit-date-and-time-value{ text-align:left }
   .page-header{flex-direction:column; align-items:flex-start;}
   .user-panel{width:100%; justify-content:flex-start;}
 }
+
+
+/* Только крестик — при наведении становится синим */
+#txTable button.ghost {
+  color: inherit;
+  transition: color .2s ease;
+}
+#txTable button.ghost:hover {
+  color: var(--accent); /* синий, как у кнопок */
+}
+/* стрелка у select: сдвиг и запас справа */
+select{
+  -webkit-appearance:none; -moz-appearance:none; appearance:none;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M7 10l5 5 5-5' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat:no-repeat;
+  background-position:right 12px center; /* ← двигай это значение (8–16px) */
+  background-size:16px 16px;
+  padding-right:40px; /* чтобы текст не упирался в иконку */
+}
+select::-ms-expand{display:none;} /* IE/Edge legacy */
+
+/* скрыть только полосу прокрутки */
+html, body {
+  scrollbar-width: none;      /* Firefox */
+  -ms-overflow-style: none;   /* IE / Edge */
+}
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none;              /* Chrome / Safari */
+}
+   
 </style>
 </head>
 <body>
@@ -191,8 +222,8 @@ input[type="month"]::-webkit-date-and-time-value{ text-align:left }
   <!-- ВЕРХНЯЯ ПАНЕЛЬ -->
   <div class="page-header">
     <div class="info">
-      <h1>Личный финтрекер Дмитрия</h1>
-      <div class="muted">4 счёта + долг · персональные данные на Supabase</div>
+      <h1>Персональный финансовый трекер</h1>
+      <div class="muted">Удобный сервис для подсчета дохода и расхода</div>
     </div>
     <div class="user-panel">
       <span id="userEmail" class="userpill">—</span>
@@ -781,3 +812,4 @@ const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.ht
 </script>
 </body>
 </html>
+
