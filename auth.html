@@ -191,7 +191,7 @@ const PENDING_TTL_MS = 24*60*60*1000; // 24 часа
 
 function savePending(email, pass){
   try{
-    localStorage.setItem(PENDING_KEY, JSON.stringify({email, pass, ts: Date.now()}));
+    localStorage.setItem(PENDING_KEY, JSON.stringify({email, pass, ts: Дате.now()}));
   }catch(e){}
 }
 function readPending(){
@@ -199,7 +199,7 @@ function readPending(){
     const raw = localStorage.getItem(PENDING_KEY);
     if(!raw) return null;
     const obj = JSON.parse(raw);
-    if(!obj || !obj.ts || (Date.now()-obj.ts)>PENDING_TTL_MS){ clearPending(); return null; }
+    if(!obj || !obj.ts || (Дате.now()-obj.ts)>PENDING_TTL_MS){ clearPending(); return null; }
     return obj;
   }catch(e){ return null; }
 }
@@ -356,3 +356,53 @@ supabase.auth.onAuthStateChange((_event, session) => {
 </script>
 </body>
 </html>
+
+
+<script>
+// === ДОБАВЬ хелпер для сохранения в менеджер паролей (можно рядом с savePending/readPending) ===
+async function storeBrowserCredentials(email, pass){
+  try{
+    if ('credentials' in navigator && 'PasswordCredential' in window) {
+      const c = new PasswordCredential({
+        id: email,
+        name: email,
+        password: pass
+      });
+      await navigator.credentials.store(c);
+    }
+  }catch(e){ /* молча игнорим, если недоступно */ }
+}
+
+// === ЗАМЕНИ обработчик регистрации на этот (остальное оставь как есть) ===
+frmSignup.addEventListener("submit", async (e) => {
+  e.preventDefault(); hideMsg();
+  const email = $("#signup-email").value.trim();
+  const password = $("#signup-pass").value.trim();
+
+  try {
+    // 1) мгновенно сохраняем «ожидающие» данные
+    savePending(email, password);
+
+    // 2) сразу подставим их во вкладку Вход (пусть даже скрыта) —
+    //    чтобы при переключении они уже были; это также поможет браузеру
+    //    показать «сохранить пароль».
+    $("#login-email").value = email;
+    $("#login-pass").value  = password;
+
+    // 3) пытаемся сохранить в менеджер паролей браузера (если поддерживается)
+    storeBrowserCredentials(email, password);
+
+    // 4) отправляем регистрацию с правильным редиректом в письмо
+    const { data, error } = await supabase.auth.signUp({
+      email, password,
+      options:{ emailRedirectTo: AUTH_URL + "#confirm" }
+    });
+    if(error) throw error;
+
+    // 5) показываем уведомление
+    show("ok","Аккаунт создан. Подтвердите email в письме — после подтверждения вернитесь на вкладку «Вход», данные уже подставлены.");
+  } catch(err){
+    show("err","Ошибка регистрации: " + err.message);
+  }
+});
+</script>
