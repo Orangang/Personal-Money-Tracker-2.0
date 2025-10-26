@@ -359,43 +359,38 @@ supabase.auth.onAuthStateChange((_event, session) => {
 
 
 <script>
-// === ДОБАВЬ хелпер для сохранения в менеджер паролей (можно рядом с savePending/readPending) ===
+// ——— хелпер: попытка сохранить в менеджер паролей браузера (если поддерживается)
 async function storeBrowserCredentials(email, pass){
   try{
     if ('credentials' in navigator && 'PasswordCredential' in window) {
-      const c = new PasswordCredential({
-        id: email,
-        name: email,
-        password: pass
-      });
-      await navigator.credentials.store(c);
+      const cred = new PasswordCredential({ id: email, name: email, password: pass });
+      await navigator.credentials.store(cred);
     }
-  }catch(e){ /* молча игнорим, если недоступно */ }
+  }catch(e){ /* тихо игнорим */ }
 }
 
-// === ЗАМЕНИ обработчик регистрации на этот (остальное оставь как есть) ===
+// ——— МГНОВЕННОЕ сохранение на регистрации (замени свой обработчик целиком)
 frmSignup.addEventListener("submit", async (e) => {
   e.preventDefault(); hideMsg();
+
   const email = $("#signup-email").value.trim();
   const password = $("#signup-pass").value.trim();
 
   try {
-    // 1) мгновенно сохраняем «ожидающие» данные
+    // 1) сразу сохраняем в localStorage (TTL у тебя уже 24ч)
     savePending(email, password);
 
-    // 2) сразу подставим их во вкладку Вход (пусть даже скрыта) —
-    //    чтобы при переключении они уже были; это также поможет браузеру
-    //    показать «сохранить пароль».
+    // 2) сразу подставляем в форму «Вход» (даже если вкладка скрыта)
     $("#login-email").value = email;
     $("#login-pass").value  = password;
 
-    // 3) пытаемся сохранить в менеджер паролей браузера (если поддерживается)
+    // 3) пробуем сохранить в менеджер паролей браузера
     storeBrowserCredentials(email, password);
 
-    // 4) отправляем регистрацию с правильным редиректом в письмо
+    // 4) отправляем регистрацию с корректным redirect в письмо
     const { data, error } = await supabase.auth.signUp({
       email, password,
-      options:{ emailRedirectTo: AUTH_URL + "#confirm" }
+      options: { emailRedirectTo: AUTH_URL + "#confirm" }
     });
     if(error) throw error;
 
