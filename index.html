@@ -185,11 +185,18 @@ input[type="month"]::-webkit-date-and-time-value{ text-align:left }
 }
 
 /* Только крестик — при наведении становится синим */
-#txTable button.ghost {
-  color: inherit;
-  transition: color .2s ease;
+#txTable .btn-ghost {
+  color: inherit; background:#fff; border:1px solid var(--line); border-radius:8px; padding:6px 10px; min-height:32px; cursor:pointer;
+  transition: color .2s ease, border-color .2s ease, background .2s ease;
 }
-#txTable button.ghost:hover { color: var(--accent); }
+#txTable .btn-ghost:hover { color: var(--accent); border-color:#d4e1ff; }
+
+/* Кнопки в ячейке действий */
+.actions{display:flex; gap:8px; justify-content:flex-end}
+.icon{
+  width:18px; height:18px; display:inline-block; vertical-align:middle;
+}
+.icon svg{width:18px; height:18px; display:block}
 
 /* стрелка у select: сдвиг и запас справа */
 select{
@@ -205,6 +212,18 @@ select::-ms-expand{display:none;}
 /* скрыть только полосу прокрутки */
 html, body { scrollbar-width: none; -ms-overflow-style: none; }
 html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
+
+/* ===== МОДАЛКА РЕДАКТИРОВАНИЯ ===== */
+.backdrop{position:fixed; inset:0; background:rgba(0,0,0,.35); display:flex; align-items:center; justify-content:center; padding:20px; z-index:999}
+.modal{
+  width:min(680px, 100%); background:#fff; border:1px solid var(--line); border-radius:12px; box-shadow:var(--shadow);
+  padding:16px;
+}
+.modal h3{margin:0 0 8px}
+.modal .controls{justify-content:flex-end}
+.modal .row{gap:12px}
+.modal .two{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+@media (max-width:640px){ .modal .two{grid-template-columns:1fr} }
 </style>
 </head>
 <body>
@@ -382,7 +401,7 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
     <div style="overflow:auto">
       <table class="table" id="txTable">
         <thead>
-          <tr><th>Дата</th><th>Тип</th><th>Счета</th><th>Сумма</th><th>Категория</th><th>Заметка</th><th></th></tr>
+          <tr><th>Дата</th><th>Тип</th><th>Счета</th><th>Сумма</th><th>Категория</th><th>Заметка</th><th style="width:110px"></th></tr>
         </thead>
         <tbody></tbody>
       </table>
@@ -420,6 +439,67 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
   <footer>сделано руками <a href="https://dmitry-design.ru/" target="_blank" rel="noopener">dmitry-design.ru</a></footer>
 </div>
 
+<!-- ===== МОДАЛКА РЕДАКТИРОВАНИЯ ТРАНЗАКЦИИ ===== -->
+<div id="editBackdrop" class="backdrop" hidden aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="editTitle">
+    <h3 id="editTitle">Редактирование транзакции</h3>
+    <div class="two" style="margin-top:8px">
+      <label>Тип
+        <select id="edType">
+          <option value="income">Доход</option>
+          <option value="expense">Расход</option>
+          <option value="transfer">Перевод</option>
+          <option value="debt">Долг</option>
+        </select>
+      </label>
+      <label>Дата <input type="date" id="edDate"></label>
+    </div>
+
+    <div class="two">
+      <label>Сумма ₽ <input type="number" id="edAmount" min="0" step="0.01"></label>
+      <div id="edAccountBox">
+        <label>Счёт
+          <select id="edAccount">
+            <option value="base">Базовый</option>
+            <option value="fixed">Расходный</option>
+            <option value="fun">Весёлый</option>
+            <option value="save">Накопления</option>
+          </select>
+        </label>
+      </div>
+    </div>
+
+    <div class="two" id="edTransferBox" style="display:none">
+      <label>Откуда
+        <select id="edFrom">
+          <option value="base">Базовый</option>
+          <option value="fixed">Расходный</option>
+          <option value="fun">Весёлый</option>
+          <option value="save">Накопления</option>
+        </select>
+      </label>
+      <label>Куда
+        <select id="edTo">
+          <option value="base">Базовый</option>
+          <option value="fixed">Расходный</option>
+          <option value="fun">Весёлый</option>
+          <option value="save">Накопления</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="two">
+      <label>Категория <input type="text" id="edCategory" placeholder="Категория"></label>
+      <label>Заметка <input type="text" id="edNote" placeholder="Заметка (опционально)"></label>
+    </div>
+
+    <div class="controls" style="margin-top:8px">
+      <button id="btnCancelEdit" class="ghost">Отмена</button>
+      <button id="btnSaveEdit" class="primary">Сохранить</button>
+    </div>
+  </div>
+</div>
+
 <!-- Supabase SDK + APP -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -440,7 +520,6 @@ const clamp = (v,lo,hi)=>Math.max(lo,Math.min(hi,v));
 const todayISO = () => new Date().toISOString().slice(0,10);
 const uid = () => Math.random().toString(36).slice(2,10) + Date.now().toString(36).slice(-4);
 
-/* ====== APP ====== */
 (async () => {
   // guard — если сессии нет, уходим на auth
   const { data: { session } } = await supabase.auth.getSession();
@@ -473,14 +552,12 @@ const uid = () => Math.random().toString(36).slice(2,10) + Date.now().toString(3
     };
   }
   function saveLocal(){ localStorage.setItem(LS_KEY, JSON.stringify(state)); }
-
   async function loadCloud(){
     try{
       const { data, error } = await supabase.from('users_fintracker').select('data').eq('user_id', USER_ID).maybeSingle();
       if(error) throw error;
       if(data && data.data && Object.keys(data.data).length){
         state = data.data;
-        // если старая схема без meta — создаём
         if(!state.meta) state.meta = { seq:0 };
         saveLocal();
       }
@@ -496,14 +573,14 @@ const uid = () => Math.random().toString(36).slice(2,10) + Date.now().toString(3
   let state = loadLocal();
   await loadCloud();
 
-  // MIGRATION 1: гарантируем поле _order у каждой транзакции в порядке текущего массива
+  // MIGRATION 1: гарантируем поле _order у каждой транзакции
   (function migrateOrder(){
     if(!state.meta) state.meta = { seq:0 };
     let changed = false;
     for(const t of state.transactions){
       if(typeof t._order !== 'number'){
         state.meta.seq += 1;
-        t._order = state.meta.seq;  // фиксируем текущий порядок
+        t._order = state.meta.seq;
         changed = true;
       }
     }
@@ -522,7 +599,6 @@ const uid = () => Math.random().toString(36).slice(2,10) + Date.now().toString(3
   $('#debtDate').value = todayISO();
 
   function initMonthFilter(){
-    // дефолт — текущий месяц (или последний, если хочешь — можно поменять тут)
     const def = new Date().toISOString().slice(0,7);
     $('#fltMonth').value = def;
   }
@@ -588,24 +664,19 @@ const uid = () => Math.random().toString(36).slice(2,10) + Date.now().toString(3
   function labelAcc(k){ return ({base:'Базовый', fixed:'Расходный', fun:'Весёлый', save:'Накопления'})[k] || '—'; }
   function labelType(t){ return ({income:'Доход', expense:'Расход', transfer:'Перевод', debt:'Долг'})[t] || t; }
 
+  /* ====== РЕНДЕР ТАБЛИЦЫ (порядок по _order) ====== */
   function renderTable(){
     const month = $('#fltMonth').value || new Date().toISOString().slice(0,7);
     const tp = $('#fltType').value;
     const acc = $('#fltAcc').value;
     const q = ($('#fltSearch').value||'').trim().toLowerCase();
 
-    // БЕРЁМ КОПИЮ БЕЗ ДОП. СОРТИРОВКИ ПО ДАТЕ — только по _order (порядок добавления)
     let list = state.transactions.slice();
-
-    // фильтр по месяцу — строго по prefix YYYY-MM
     list = list.filter(t => (t.date||'').startsWith(month));
-
     if(tp)  list = list.filter(t => t.type===tp);
     if(acc) list = list.filter(t => t.account===acc || t.fromAccount===acc || t.toAccount===acc);
     if(q)   list = list.filter(t => ((t.category||'')+(t.note||'')).toLowerCase().includes(q));
 
-    // ВАЖНО: убран «авто-подхват последних 12 мес», если пусто — показываем пусто
-    // стабильный порядок по _order (как добавляли)
     list.sort((a,b)=> (a._order||0) - (b._order||0));
 
     const tbody = $('#txTable tbody'); tbody.innerHTML = '';
@@ -624,7 +695,16 @@ const uid = () => Math.random().toString(36).slice(2,10) + Date.now().toString(3
         <td style="white-space:nowrap">${(t.type==='expense'||(t.type==='transfer'&&t.fromAccount))?'-':''}${fmtNum(t.amount,0)} ₽</td>
         <td>${t.category||'—'}</td>
         <td>${t.note||''}</td>
-        <td style="text-align:right"><button class="ghost" data-del="${t.id}">✕</button></td>
+        <td class="actions">
+          <button class="btn-ghost" data-edit="${t.id}" title="Редактировать" aria-label="Редактировать">
+            <span class="icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>
+              </svg>
+            </span>
+          </button>
+          <button class="btn-ghost" data-del="${t.id}" title="Удалить" aria-label="Удалить">✕</button>
+        </td>
       `;
       tbody.appendChild(tr);
     }
@@ -634,13 +714,22 @@ const uid = () => Math.random().toString(36).slice(2,10) + Date.now().toString(3
     $$('button[data-del]').forEach(btn=>{
       btn.onclick = () => {
         const id = btn.getAttribute('data-del');
+        const old = state.transactions.find(x=>x.id===id);
+        if(!old) return;
+        // откатить влияние перед удалением
+        applyTx(old, -1);
         state.transactions = state.transactions.filter(t=>t.id!==id);
         save(); renderAll();
       };
     });
+    $$('button[data-edit]').forEach(btn=>{
+      btn.onclick = () => openEdit(btn.getAttribute('data-edit'));
+    });
   }
 
-  // income preview/add
+  /* ===========================
+     ДОБАВЛЕНИЕ (без изменений)
+     =========================== */
   $('#btnPreviewSplit').onclick = () => {
     const amount = Number($('#incAmount').value||0);
     const preview = $('#splitPreview');
@@ -677,11 +766,9 @@ const uid = () => Math.random().toString(36).slice(2,10) + Date.now().toString(3
     if(delta!==0) split.base += delta;
     for(const k of ['base','fixed','fun','save']){
       if(split[k] > 0){
-        state.transactions.push({
-          id:uid(), _order: nextSeq(),
-          date, type:'income', account:k, amount:split[k], category, note
-        });
-        state.settings.accounts[k] += split[k];
+        const tx = { id:uid(), _order: nextSeq(), date, type:'income', account:k, amount:split[k], category, note };
+        state.transactions.push(tx);
+        applyTx(tx, +1);
       }
     }
     save();
@@ -689,7 +776,6 @@ const uid = () => Math.random().toString(36).slice(2,10) + Date.now().toString(3
     renderAll();
   };
 
-  // expense
   $('#btnAddExpense').onclick = () => {
     const date = $('#expDate').value || todayISO();
     const amount = Number($('#expAmount').value||0);
@@ -700,17 +786,14 @@ const uid = () => Math.random().toString(36).slice(2,10) + Date.now().toString(3
     if(state.settings.accounts[account] < amount){
       if(!confirm('На счёте не хватает средств. Продолжить?')) return;
     }
-    state.transactions.push({
-      id:uid(), _order: nextSeq(),
-      date, type:'expense', account, amount, category, note
-    });
-    state.settings.accounts[account] -= amount;
+    const tx = { id:uid(), _order: nextSeq(), date, type:'expense', account, amount, category, note };
+    state.transactions.push(tx);
+    applyTx(tx, +1);
     save();
     $('#expAmount').value=''; $('#expNote').value='';
     renderAll();
   };
 
-  // transfer
   $('#btnTransfer').onclick = () => {
     const date = $('#trDate').value || todayISO();
     const amount = Number($('#trAmount').value||0);
@@ -722,37 +805,26 @@ const uid = () => Math.random().toString(36).slice(2,10) + Date.now().toString(3
     if(state.settings.accounts[from] < amount){
       if(!confirm('На счёте-источнике не хватает средств. Продолжить?')) return;
     }
-    state.transactions.push({
-      id:uid(), _order: nextSeq(),
-      date, type:'transfer', fromAccount:from, toAccount:to, amount, category:'Перевод', note
-    });
-    state.settings.accounts[from] -= amount;
-    state.settings.accounts[to] += amount;
+    const tx = { id:uid(), _order: nextSeq(), date, type:'transfer', fromAccount:from, toAccount:to, amount, category:'Перевод', note };
+    state.transactions.push(tx);
+    applyTx(tx, +1);
     save();
     $('#trAmount').value=''; $('#trNote').value='';
     renderAll();
   };
 
-  // debt
   $('#btnDebtPay').onclick = () => {
     const date = $('#debtDate').value || todayISO();
     const amount = Number($('#debtPayAmount').value||0);
     const from = $('#debtFrom').value;
     const note = ($('#debtNote').value||'');
     if(amount<=0) return alert('Введите сумму платежа > 0');
-
-    state.transactions.push({
-      id:uid(), _order: nextSeq(),
-      date, type:'debt', amount, account:from || undefined, category:'Платёж по долгу', note
-    });
-
-    if(from){
-      if(state.settings.accounts[from] < amount){
-        if(!confirm('На счёте не хватает средств. Продолжить?')) return;
-      }
-      state.settings.accounts[from] -= amount;
+    if(from && state.settings.accounts[from] < amount){
+      if(!confirm('На счёте не хватает средств. Продолжить?')) return;
     }
-    state.settings.accounts.debtPaid = clamp(Math.round(state.settings.accounts.debtPaid + amount), 0, Math.round(state.settings.accounts.debtTotal));
+    const tx = { id:uid(), _order: nextSeq(), date, type:'debt', amount, account:from || undefined, category:'Платёж по долгу', note };
+    state.transactions.push(tx);
+    applyTx(tx, +1);
     save();
     $('#debtPayAmount').value=''; $('#debtNote').value='';
     renderAll();
@@ -763,13 +835,143 @@ const uid = () => Math.random().toString(36).slice(2,10) + Date.now().toString(3
     }
   };
 
-  // filters
+  /* ===========================
+     APPLY/REVERT влияния транзакции
+     =========================== */
+  function applyTx(tx, sign){
+    const A = state.settings.accounts;
+    const amt = Number(tx.amount)||0;
+    if(tx.type === 'income'){
+      if(tx.account) A[tx.account] += sign*amt;
+    } else if(tx.type === 'expense'){
+      if(tx.account) A[tx.account] -= sign*amt;
+    } else if(tx.type === 'transfer'){
+      if(tx.fromAccount) A[tx.fromAccount] -= sign*amt;
+      if(tx.toAccount)   A[tx.toAccount]   += sign*amt;
+    } else if(tx.type === 'debt'){
+      // долг: рост/снижение погашенного
+      A.debtPaid = clamp((A.debtPaid + sign*amt), 0, A.debtTotal);
+      // опционально списываем со счёта
+      if(tx.account) A[tx.account] -= sign*amt;
+    }
+  }
+
+  /* ===========================
+     РЕДАКТИРОВАНИЕ
+     =========================== */
+  let editingId = null;
+
+  function showEditUIByType(tp){
+    // показываем/скрываем поля счётов
+    $('#edAccountBox').style.display  = (tp==='income'||tp==='expense'||tp==='debt') ? '' : 'none';
+    $('#edTransferBox').style.display = (tp==='transfer') ? '' : 'none';
+  }
+
+  function openEdit(id){
+    const tx = state.transactions.find(x=>x.id===id);
+    if(!tx) return;
+    editingId = id;
+
+    // заполнение формы
+    $('#edType').value = tx.type;
+    $('#edDate').value = tx.date || todayISO();
+    $('#edAmount').value = tx.amount ?? 0;
+    $('#edCategory').value = tx.category || '';
+    $('#edNote').value = tx.note || '';
+
+    if(tx.type==='income' || tx.type==='expense' || tx.type==='debt'){
+      $('#edAccount').value = tx.account || 'base';
+    } else {
+      $('#edAccount').value = 'base';
+    }
+    if(tx.type==='transfer'){
+      $('#edFrom').value = tx.fromAccount || 'base';
+      $('#edTo').value   = tx.toAccount || 'save';
+    } else {
+      $('#edFrom').value = 'base';
+      $('#edTo').value   = 'save';
+    }
+
+    showEditUIByType(tx.type);
+    // показать модалку
+    const bg = $('#editBackdrop');
+    bg.hidden = false; bg.setAttribute('aria-hidden','false');
+    // trap focus на кнопку Сохранить
+    setTimeout(()=>$('#btnSaveEdit').focus(), 0);
+  }
+
+  $('#edType').addEventListener('change', (e)=> showEditUIByType(e.target.value));
+
+  function closeEdit(){
+    const bg = $('#editBackdrop');
+    bg.hidden = true; bg.setAttribute('aria-hidden','true');
+    editingId = null;
+  }
+  $('#btnCancelEdit').onclick = closeEdit;
+  // закрытие по клику на фон
+  $('#editBackdrop').addEventListener('click', (e)=>{ if(e.target.id==='editBackdrop') closeEdit(); });
+  // закрытие по ESC
+  window.addEventListener('keydown', (e)=>{ if(!$('#editBackdrop').hidden && e.key==='Escape') closeEdit(); });
+
+  $('#btnSaveEdit').onclick = () => {
+    if(!editingId) return;
+    const idx = state.transactions.findIndex(x=>x.id===editingId);
+    if(idx<0) return;
+    const old = state.transactions[idx];
+
+    // собираем новую транзакцию
+    const tp = $('#edType').value;
+    const date = $('#edDate').value || todayISO();
+    const amount = Number($('#edAmount').value||0);
+    const category = ($('#edCategory').value||'').trim() || (tp==='income'?'Доход': tp==='expense'?'Расход': tp==='transfer'?'Перевод':'Платёж по долгу');
+    const note = ($('#edNote').value||'');
+    if(amount<=0) return alert('Сумма должна быть > 0');
+
+    const draft = { id: old.id, _order: old._order, date, type: tp, amount, category, note };
+    if(tp==='income' || tp==='expense' || tp==='debt'){
+      draft.account = $('#edAccount').value;
+    }
+    if(tp==='transfer'){
+      draft.fromAccount = $('#edFrom').value;
+      draft.toAccount = $('#edTo').value;
+      if(draft.fromAccount === draft.toAccount) return alert('Для перевода выберите разные счета.');
+    }
+
+    // 1) откатить старую
+    applyTx(old, -1);
+
+    // 2) базовая проверка нехватки средств (как при добавлении)
+    const A = state.settings.accounts;
+    const needConfirm = (
+      (tp==='expense' && A[draft.account] < amount) ||
+      (tp==='transfer' && A[draft.fromAccount] < amount) ||
+      (tp==='debt' && draft.account && A[draft.account] < amount)
+    );
+    if(needConfirm){
+      const ok = confirm('На счёте не хватает средств. Продолжить?');
+      if(!ok){
+        // вернуть как было и выйти
+        applyTx(old, +1);
+        return;
+      }
+    }
+
+    // 3) применить новый и сохранить
+    state.transactions[idx] = draft;
+    applyTx(draft, +1);
+    save();
+    renderAll();
+    closeEdit();
+  };
+
+  /* ===========================
+     ФИЛЬТРЫ/НАСТРОЙКИ/ДЕМО/ИМПОРТ/ЭКСПОРТ
+     =========================== */
   $('#fltMonth').oninput = () => { renderDashboard(); renderTable(); };
   $('#fltType').oninput  = renderTable;
   $('#fltAcc').oninput   = renderTable;
   $('#fltSearch').oninput= renderTable;
 
-  // settings
   $('#btnSaveSettings').onclick = () => {
     const A = state.settings.accounts;
     A.base = Number($('#stBase').value||0);
@@ -794,14 +996,8 @@ const uid = () => Math.random().toString(36).slice(2,10) + Date.now().toString(3
     alert('Настройки сохранены.');
   };
 
-  // helpers для демо
-  function isoShift(days){
-    const d = new Date();
-    d.setDate(d.getDate() + days);
-    return d.toISOString().slice(0,10);
-  }
+  function isoShift(days){ const d = new Date(); d.setDate(d.getDate()+days); return d.toISOString().slice(0,10); }
 
-  // demo
   $('#btnFillDemo').onclick = () => {
     if(!confirm('Загрузить демо-данные и перезаписать текущие?')) return;
     state = {
@@ -813,7 +1009,6 @@ const uid = () => Math.random().toString(36).slice(2,10) + Date.now().toString(3
       },
       transactions:[]
     };
-    // добавляем в правильном порядке с _order
     const demo = [
       {date: isoShift(-25), type:'income',  account:'base',  amount:60000, category:'Зарплата', note:'автосплит'},
       {date: isoShift(-25), type:'income',  account:'fixed', amount:45000, category:'Зарплата', note:'автосплит'},
@@ -828,12 +1023,13 @@ const uid = () => Math.random().toString(36).slice(2,10) + Date.now().toString(3
     ];
     for(const t of demo){
       state.meta.seq += 1;
-      state.transactions.push({ id:uid(), _order: state.meta.seq, ...t });
+      const tx = { id:uid(), _order: state.meta.seq, ...t };
+      state.transactions.push(tx);
+      applyTx(tx, +1);
     }
     save(); initMonthFilter(); renderAll();
   };
 
-  // export / import / wipe
   $('#btnExport').onclick = () => {
     const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
     const a = document.createElement('a');
@@ -848,31 +1044,30 @@ const uid = () => Math.random().toString(36).slice(2,10) + Date.now().toString(3
       const text = await file.text();
       const data = JSON.parse(text);
       if(!data.settings || !data.transactions) throw new Error('Неверный формат файла');
-      // если импорт старого формата — мигрируем _order
       if(!data.meta) data.meta = { seq:0 };
       let seq = data.meta.seq || 0;
+      // перед полным присвоением — обнулим балансы, заново применим все tx
+      const baseState = {
+        base:0,fixed:0,fun:0,save:0,debtTotal:Number(state.settings.accounts.debtTotal)||0,debtPaid:0
+      };
+      // мигрируем _order и накапливаем
       for(const t of data.transactions){
         if(typeof t._order !== 'number'){ seq += 1; t._order = seq; }
       }
       data.meta.seq = Math.max(seq, data.meta.seq||0);
-      state = data; save(); initMonthFilter(); renderAll(); alert('Импорт выполнен.');
+      state.settings.accounts.base = 0;
+      state.settings.accounts.fixed = 0;
+      state.settings.accounts.fun = 0;
+      state.settings.accounts.save = 0;
+      state.settings.accounts.debtPaid = 0;
+      state.transactions = [];
+      for(const t of data.transactions.sort((a,b)=> (a._order||0)-(b._order||0))){
+        state.transactions.push(t);
+        applyTx(t, +1);
+      }
+      save(); initMonthFilter(); renderAll(); alert('Импорт выполнен.');
     }catch(err){ alert('Ошибка импорта: ' + err.message); }
     finally{ e.target.value = ''; }
-  };
-  $('#btnWipe').onclick = () => {
-    if(confirm('Удалить все данные? Это действие необратимо.')){
-      localStorage.removeItem(LS_KEY);
-      state = {
-        meta:{ seq:0 },
-        settings:{
-          accounts:{ base:0,fixed:0,fun:0,save:0,debtTotal:0,debtPaid:0 },
-          autosplit:{ base:40,fixed:30,fun:10,save:20 },
-          monthStartDay:1
-        },
-        transactions:[]
-      };
-      save(); initMonthFilter(); renderAll();
-    }
   };
 
   function renderAll(){ fillSettingsUI(); renderDashboard(); renderTable(); }
