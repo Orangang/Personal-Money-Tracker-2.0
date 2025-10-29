@@ -150,9 +150,9 @@ details.modal > summary::-webkit-details-marker{display:none}
 .user-panel button:hover{
   border-color:#2d6cdf;
   background:#fff;
-  color:#111; /* цвет текста остаётся прежним */
+  color:#111;
 }
-   
+
 /* ТИПОГРАФИКА/ШРИФТ */
 @font-face{
   font-family:"SF Pro Display";
@@ -184,36 +184,27 @@ input[type="month"]::-webkit-date-and-time-value{ text-align:left }
   .user-panel{width:100%; justify-content:flex-start;}
 }
 
-
 /* Только крестик — при наведении становится синим */
 #txTable button.ghost {
   color: inherit;
   transition: color .2s ease;
 }
-#txTable button.ghost:hover {
-  color: var(--accent); /* синий, как у кнопок */
-}
+#txTable button.ghost:hover { color: var(--accent); }
+
 /* стрелка у select: сдвиг и запас справа */
 select{
   -webkit-appearance:none; -moz-appearance:none; appearance:none;
   background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M7 10l5 5 5-5' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>");
   background-repeat:no-repeat;
-  background-position:right 12px center; /* ← двигай это значение (8–16px) */
+  background-position:right 12px center;
   background-size:16px 16px;
-  padding-right:40px; /* чтобы текст не упирался в иконку */
+  padding-right:40px;
 }
-select::-ms-expand{display:none;} /* IE/Edge legacy */
+select::-ms-expand{display:none;}
 
 /* скрыть только полосу прокрутки */
-html, body {
-  scrollbar-width: none;      /* Firefox */
-  -ms-overflow-style: none;   /* IE / Edge */
-}
-html::-webkit-scrollbar,
-body::-webkit-scrollbar {
-  display: none;              /* Chrome / Safari */
-}
-   
+html, body { scrollbar-width: none; -ms-overflow-style: none; }
+html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 </style>
 </head>
 <body>
@@ -432,39 +423,54 @@ body::-webkit-scrollbar {
 <!-- Supabase SDK + APP -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+/* ===========================
+   ИНИТ SUPABASE / ГВАРД
+   =========================== */
 const SUPABASE_URL = "https://hxbrvnwukieluzlffgyr.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh4YnJ2bnd1a2llbHV6bGZmZ3lyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE0NTM1NDMsImV4cCI6MjA3NzAyOTU0M30.IWViKSutxlXo1R3DqArijjeseK6nQ9m55ZPe5EUToLQ";
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.html";
 
+/* Утилиты DOM/форматирования */
+const $  = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+const fmtRUB = n => (Number(n)||0).toLocaleString('ru-RU',{style:'currency',currency:'RUB',maximumFractionDigits:0});
+const fmtNum = (n,d=2) => (Number(n)||0).toLocaleString('ru-RU',{minimumFractionDigits:d,maximumFractionDigits:d});
+const clamp = (v,lo,hi)=>Math.max(lo,Math.min(hi,v));
+const todayISO = () => new Date().toISOString().slice(0,10);
+const uid = () => Math.random().toString(36).slice(2,10) + Date.now().toString(36).slice(-4);
+
+/* ====== APP ====== */
 (async () => {
-  // guard
+  // guard — если сессии нет, уходим на auth
   const { data: { session } } = await supabase.auth.getSession();
   if(!(session && session.user)){ location.href = AUTH_URL; return; }
   const USER_ID = session.user.id;
-  document.getElementById("userEmail").textContent = session.user.email || USER_ID;
+  $("#userEmail").textContent = session.user.email || USER_ID;
 
   // sign out
-  document.getElementById("btnSignOut").onclick = async () => {
+  $("#btnSignOut").onclick = async () => {
     try{ await supabase.auth.signOut(); }catch(e){}
     localStorage.removeItem("dm_user_id");
     location.href = AUTH_URL;
   };
 
-  // ====== APP ======
-  const $ = (s, r=document) => r.querySelector(s);
-  const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
-  const fmtRUB = n => (Number(n)||0).toLocaleString('ru-RU',{style:'currency',currency:'RUB',maximumFractionDigits:0});
-  const fmtNum = (n,d=2) => (Number(n)||0).toLocaleString('ru-RU',{minimumFractionDigits:d,maximumFractionDigits:d});
-  const clamp = (v,lo,hi)=>Math.max(lo,Math.min(hi,v));
-  const todayISO = () => new Date().toISOString().slice(0,10);
-  const uid = () => Math.random().toString(36).slice(2,10) + Date.now().toString(36).slice(-4);
-
+  /* ===========================
+     PERSISTENCE (LS + Cloud)
+     =========================== */
   const LS_KEY = `dm_fin_v1_${USER_ID}`;
 
   function loadLocal(){
     try{ const raw = localStorage.getItem(LS_KEY); if(raw) return JSON.parse(raw); }catch(e){}
-    return { settings:{ accounts:{ base:0,fixed:0,fun:0,save:0,debtTotal:0,debtPaid:0 }, autosplit:{ base:40,fixed:30,fun:10,save:20 }, monthStartDay:1 }, transactions:[] };
+    return {
+      meta:{ seq:0 }, /* ← монотонный счётчик для _order */
+      settings:{
+        accounts:{ base:0,fixed:0,fun:0,save:0,debtTotal:0,debtPaid:0 },
+        autosplit:{ base:40,fixed:30,fun:10,save:20 },
+        monthStartDay:1
+      },
+      transactions:[]
+    };
   }
   function saveLocal(){ localStorage.setItem(LS_KEY, JSON.stringify(state)); }
 
@@ -474,6 +480,8 @@ const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.ht
       if(error) throw error;
       if(data && data.data && Object.keys(data.data).length){
         state = data.data;
+        // если старая схема без meta — создаём
+        if(!state.meta) state.meta = { seq:0 };
         saveLocal();
       }
     }catch(e){ console.warn('loadCloud:', e.message); }
@@ -484,19 +492,38 @@ const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.ht
   }
   function save(){ saveLocal(); saveCloud(); }
 
-  // state
+  // state + миграции
   let state = loadLocal();
   await loadCloud();
 
-  // init dates & month filter
+  // MIGRATION 1: гарантируем поле _order у каждой транзакции в порядке текущего массива
+  (function migrateOrder(){
+    if(!state.meta) state.meta = { seq:0 };
+    let changed = false;
+    for(const t of state.transactions){
+      if(typeof t._order !== 'number'){
+        state.meta.seq += 1;
+        t._order = state.meta.seq;  // фиксируем текущий порядок
+        changed = true;
+      }
+    }
+    if(changed) save();
+  })();
+
+  // генератор следующего порядка (монотонный)
+  function nextSeq(){ state.meta.seq += 1; return state.meta.seq; }
+
+  /* ===========================
+     INIT UI
+     =========================== */
   $('#incDate').value = todayISO();
   $('#expDate').value = todayISO();
   $('#trDate').value = todayISO();
   $('#debtDate').value = todayISO();
 
   function initMonthFilter(){
-    const months = state.transactions.map(t => (t.date||'').slice(0,7)).filter(Boolean);
-    const def = months.length ? months.sort().slice(-1)[0] : new Date().toISOString().slice(0,7);
+    // дефолт — текущий месяц (или последний, если хочешь — можно поменять тут)
+    const def = new Date().toISOString().slice(0,7);
     $('#fltMonth').value = def;
   }
   initMonthFilter();
@@ -555,7 +582,7 @@ const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.ht
     const totalBal = A.base + A.fixed + A.fun + A.save;
     $('#kpiTotal').textContent = fmtRUB(totalBal);
 
-    document.getElementById('todayStr').textContent = new Date().toLocaleDateString('ru-RU');
+    $('#todayStr').textContent = new Date().toLocaleDateString('ru-RU');
   }
 
   function labelAcc(k){ return ({base:'Базовый', fixed:'Расходный', fun:'Весёлый', save:'Накопления'})[k] || '—'; }
@@ -567,17 +594,19 @@ const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.ht
     const acc = $('#fltAcc').value;
     const q = ($('#fltSearch').value||'').trim().toLowerCase();
 
-    let list = state.transactions.slice().sort((a,b)=> (a.date>b.date? -1: a.date<b.date? 1: 0));
-    list = list.filter(t => (t.date||'').startsWith(month));
-    if(tp) list = list.filter(t => t.type===tp);
-    if(acc) list = list.filter(t => t.account===acc || t.fromAccount===acc || t.toAccount===acc);
-    if(q) list = list.filter(t => ((t.category||'')+(t.note||'')).toLowerCase().includes(q));
+    // БЕРЁМ КОПИЮ БЕЗ ДОП. СОРТИРОВКИ ПО ДАТЕ — только по _order (порядок добавления)
+    let list = state.transactions.slice();
 
-    if(!tp && !acc && !q && list.length===0){
-      list = state.transactions.slice().sort((a,b)=> (a.date>b.date? -1: a.date<b.date? 1: 0));
-      const cutoff = new Date(); cutoff.setMonth(cutoff.getMonth()-12);
-      list = list.filter(t => (t.date && new Date(t.date) >= cutoff));
-    }
+    // фильтр по месяцу — строго по prefix YYYY-MM
+    list = list.filter(t => (t.date||'').startsWith(month));
+
+    if(tp)  list = list.filter(t => t.type===tp);
+    if(acc) list = list.filter(t => t.account===acc || t.fromAccount===acc || t.toAccount===acc);
+    if(q)   list = list.filter(t => ((t.category||'')+(t.note||'')).toLowerCase().includes(q));
+
+    // ВАЖНО: убран «авто-подхват последних 12 мес», если пусто — показываем пусто
+    // стабильный порядок по _order (как добавляли)
+    list.sort((a,b)=> (a._order||0) - (b._order||0));
 
     const tbody = $('#txTable tbody'); tbody.innerHTML = '';
     for(const t of list){
@@ -612,9 +641,9 @@ const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.ht
   }
 
   // income preview/add
-  document.getElementById('btnPreviewSplit').onclick = () => {
-    const amount = Number(document.getElementById('incAmount').value||0);
-    const preview = document.getElementById('splitPreview');
+  $('#btnPreviewSplit').onclick = () => {
+    const amount = Number($('#incAmount').value||0);
+    const preview = $('#splitPreview');
     if(!amount){ preview.style.display='none'; return; }
     const s = state.settings.autosplit;
     const p = {
@@ -630,7 +659,7 @@ const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.ht
     preview.textContent = `Распределение: Базовый ${p.base.toLocaleString('ru-RU')} ₽, Расходный ${p.fixed.toLocaleString('ru-RU')} ₽, Весёлый ${p.fun.toLocaleString('ru-RU')} ₽, Накопления ${p.save.toLocaleString('ru-RU')} ₽.`;
   };
 
-  document.getElementById('btnAddIncome').onclick = () => {
+  $('#btnAddIncome').onclick = () => {
     const date = $('#incDate').value || todayISO();
     const amount = Number($('#incAmount').value||0);
     const category = ($('#incCategory').value||'Доход');
@@ -648,7 +677,10 @@ const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.ht
     if(delta!==0) split.base += delta;
     for(const k of ['base','fixed','fun','save']){
       if(split[k] > 0){
-        state.transactions.push({id:uid(), date, type:'income', account:k, amount:split[k], category, note});
+        state.transactions.push({
+          id:uid(), _order: nextSeq(),
+          date, type:'income', account:k, amount:split[k], category, note
+        });
         state.settings.accounts[k] += split[k];
       }
     }
@@ -658,7 +690,7 @@ const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.ht
   };
 
   // expense
-  document.getElementById('btnAddExpense').onclick = () => {
+  $('#btnAddExpense').onclick = () => {
     const date = $('#expDate').value || todayISO();
     const amount = Number($('#expAmount').value||0);
     const account = $('#expAcc').value;
@@ -668,7 +700,10 @@ const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.ht
     if(state.settings.accounts[account] < amount){
       if(!confirm('На счёте не хватает средств. Продолжить?')) return;
     }
-    state.transactions.push({id:uid(), date, type:'expense', account, amount, category, note});
+    state.transactions.push({
+      id:uid(), _order: nextSeq(),
+      date, type:'expense', account, amount, category, note
+    });
     state.settings.accounts[account] -= amount;
     save();
     $('#expAmount').value=''; $('#expNote').value='';
@@ -676,7 +711,7 @@ const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.ht
   };
 
   // transfer
-  document.getElementById('btnTransfer').onclick = () => {
+  $('#btnTransfer').onclick = () => {
     const date = $('#trDate').value || todayISO();
     const amount = Number($('#trAmount').value||0);
     const from = $('#trFrom').value;
@@ -687,7 +722,10 @@ const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.ht
     if(state.settings.accounts[from] < amount){
       if(!confirm('На счёте-источнике не хватает средств. Продолжить?')) return;
     }
-    state.transactions.push({id:uid(), date, type:'transfer', fromAccount:from, toAccount:to, amount, category:'Перевод', note});
+    state.transactions.push({
+      id:uid(), _order: nextSeq(),
+      date, type:'transfer', fromAccount:from, toAccount:to, amount, category:'Перевод', note
+    });
     state.settings.accounts[from] -= amount;
     state.settings.accounts[to] += amount;
     save();
@@ -696,14 +734,17 @@ const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.ht
   };
 
   // debt
-  document.getElementById('btnDebtPay').onclick = () => {
+  $('#btnDebtPay').onclick = () => {
     const date = $('#debtDate').value || todayISO();
     const amount = Number($('#debtPayAmount').value||0);
     const from = $('#debtFrom').value;
     const note = ($('#debtNote').value||'');
     if(amount<=0) return alert('Введите сумму платежа > 0');
 
-    state.transactions.push({id:uid(), date, type:'debt', amount, account:from || undefined, category:'Платёж по долгу', note});
+    state.transactions.push({
+      id:uid(), _order: nextSeq(),
+      date, type:'debt', amount, account:from || undefined, category:'Платёж по долгу', note
+    });
 
     if(from){
       if(state.settings.accounts[from] < amount){
@@ -716,7 +757,7 @@ const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.ht
     $('#debtPayAmount').value=''; $('#debtNote').value='';
     renderAll();
   };
-  document.getElementById('btnDebtReset').onclick = () => {
+  $('#btnDebtReset').onclick = () => {
     if(confirm('Сбросить прогресс погашения долга?')){
       state.settings.accounts.debtPaid = 0; save(); renderAll();
     }
@@ -724,15 +765,15 @@ const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.ht
 
   // filters
   $('#fltMonth').oninput = () => { renderDashboard(); renderTable(); };
-  $('#fltType').oninput = renderTable;
-  $('#fltAcc').oninput  = renderTable;
-  $('#fltSearch').oninput = renderTable;
+  $('#fltType').oninput  = renderTable;
+  $('#fltAcc').oninput   = renderTable;
+  $('#fltSearch').oninput= renderTable;
 
   // settings
-  document.getElementById('btnSaveSettings').onclick = () => {
+  $('#btnSaveSettings').onclick = () => {
     const A = state.settings.accounts;
     A.base = Number($('#stBase').value||0);
-    A.fixed = Number($('#stFixed').value||0);
+    A.fixed= Number($('#stFixed').value||0);
     A.fun  = Number($('#stFun').value||0);
     A.save = Number($('#stSave').value||0);
     A.debtTotal = Number($('#stDebtTotal').value||0);
@@ -753,55 +794,83 @@ const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.ht
     alert('Настройки сохранены.');
   };
 
+  // helpers для демо
+  function isoShift(days){
+    const d = new Date();
+    d.setDate(d.getDate() + days);
+    return d.toISOString().slice(0,10);
+  }
+
   // demo
-  document.getElementById('btnFillDemo').onclick = () => {
+  $('#btnFillDemo').onclick = () => {
     if(!confirm('Загрузить демо-данные и перезаписать текущие?')) return;
     state = {
+      meta:{ seq:0 },
       settings:{
         accounts:{ base:35000, fixed:20000, fun:7000, save:45000, debtTotal:300000, debtPaid:65000 },
         autosplit:{ base:40, fixed:30, fun:10, save:20 },
         monthStartDay:1
       },
-      transactions:[
-        {id:uid(), date: isoShift(-25), type:'income', account:'base',  amount:60000, category:'Зарплата', note:'автосплит'},
-        {id:uid(), date: isoShift(-25), type:'income', account:'fixed', amount:45000, category:'Зарплата', note:'автосплит'},
-        {id:uid(), date: isoShift(-25), type:'income', account:'fun',   amount:15000, category:'Зарплата', note:'автосплит'},
-        {id:uid(), date: isoShift(-25), type:'income', account:'save',  amount:30000, category:'Зарплата', note:'автосплит'},
-        {id:uid(), date: isoShift(-7), type:'expense', account:'fixed', amount:12000, category:'Аренда', note:''},
-        {id:uid(), date: isoShift(-6), type:'expense', account:'fixed', amount:1500,  category:'Связь', note:''},
-        {id:uid(), date: isoShift(-5), type:'expense', account:'base',  amount:2200,  category:'Еда', note:'супермаркет'},
-        {id:uid(), date: isoShift(-4), type:'transfer', fromAccount:'base', toAccount:'save', amount:5000, category:'Перевод', note:'на подушку'},
-        {id:uid(), date: isoShift(-3), type:'expense', account:'fun',   amount:3000, category:'Развлечения', note:'кино/бар'},
-        {id:uid(), date: isoShift(-2), type:'debt',    amount:15000, account:'base', category:'Платёж по долгу', note:'погашение'}
-      ]
+      transactions:[]
     };
+    // добавляем в правильном порядке с _order
+    const demo = [
+      {date: isoShift(-25), type:'income',  account:'base',  amount:60000, category:'Зарплата', note:'автосплит'},
+      {date: isoShift(-25), type:'income',  account:'fixed', amount:45000, category:'Зарплата', note:'автосплит'},
+      {date: isoShift(-25), type:'income',  account:'fun',   amount:15000, category:'Зарплата', note:'автосплит'},
+      {date: isoShift(-25), type:'income',  account:'save',  amount:30000, category:'Зарплата', note:'автосплит'},
+      {date: isoShift(-7),  type:'expense', account:'fixed', amount:12000, category:'Аренда', note:''},
+      {date: isoShift(-6),  type:'expense', account:'fixed', amount:1500,  category:'Связь', note:''},
+      {date: isoShift(-5),  type:'expense', account:'base',  amount:2200,  category:'Еда', note:'супермаркет'},
+      {date: isoShift(-4),  type:'transfer',fromAccount:'base', toAccount:'save', amount:5000, category:'Перевод', note:'на подушку'},
+      {date: isoShift(-3),  type:'expense', account:'fun',   amount:3000, category:'Развлечения', note:'кино/бар'},
+      {date: isoShift(-2),  type:'debt',    amount:15000, account:'base', category:'Платёж по долгу', note:'погашение'}
+    ];
+    for(const t of demo){
+      state.meta.seq += 1;
+      state.transactions.push({ id:uid(), _order: state.meta.seq, ...t });
+    }
     save(); initMonthFilter(); renderAll();
   };
-  function isoShift(дней){ const d = new Дате(); d.setDate(d.getDate()+дней); return d.toISOString().slice(0,10); }
 
   // export / import / wipe
-  document.getElementById('btnExport').onclick = () => {
+  $('#btnExport').onclick = () => {
     const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = `dm_fin_${new Дате().toISOString().slice(0,10)}.json`;
     a.click(); URL.revokeObjectURL(a.href);
   };
-  document.getElementById('btnImport').onclick = () => { document.getElementById('fileImport').click(); };
-  document.getElementById('fileImport').onchange = async (e) => {
+  $('#btnImport').onclick = () => { $('#fileImport').click(); };
+  $('#fileImport').onchange = async (e) => {
     const file = e.target.files[0]; if(!file) return;
     try{
       const text = await file.text();
       const data = JSON.parse(text);
       if(!data.settings || !data.transactions) throw new Error('Неверный формат файла');
+      // если импорт старого формата — мигрируем _order
+      if(!data.meta) data.meta = { seq:0 };
+      let seq = data.meta.seq || 0;
+      for(const t of data.transactions){
+        if(typeof t._order !== 'number'){ seq += 1; t._order = seq; }
+      }
+      data.meta.seq = Math.max(seq, data.meta.seq||0);
       state = data; save(); initMonthFilter(); renderAll(); alert('Импорт выполнен.');
     }catch(err){ alert('Ошибка импорта: ' + err.message); }
     finally{ e.target.value = ''; }
   };
-  document.getElementById('btnWipe').onclick = () => {
+  $('#btnWipe').onclick = () => {
     if(confirm('Удалить все данные? Это действие необратимо.')){
       localStorage.removeItem(LS_KEY);
-      state = { settings:{ accounts:{ base:0,fixed:0,fun:0,save:0,debtTotal:0,debtPaid:0 }, autosplit:{ base:40,fixed:30,fun:10,save:20 }, monthStartDay:1 }, transactions:[] };
+      state = {
+        meta:{ seq:0 },
+        settings:{
+          accounts:{ base:0,fixed:0,fun:0,save:0,debtTotal:0,debtPaid:0 },
+          autosplit:{ base:40,fixed:30,fun:10,save:20 },
+          monthStartDay:1
+        },
+        transactions:[]
+      };
       save(); initMonthFilter(); renderAll();
     }
   };
@@ -812,4 +881,3 @@ const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.ht
 </script>
 </body>
 </html>
-
