@@ -31,6 +31,11 @@ html,body{height:100%}
 body{
   margin:0; background:var(--bg); color:var(--ink);
   font:400 var(--fs-base)/1.45 "SF Pro Display", -apple-system, system-ui, Segoe UI, Roboto, Inter, Arial, sans-serif;
+  /* ▼ Нормализация жирности на macOS/iOS и разных браузерах */
+  font-weight:400;
+  font-synthesis: none;              /* запрет синтезировать fake-bold/italic */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 a{color:var(--accent); text-decoration:none}
 a:hover{text-decoration:underline}
@@ -53,7 +58,7 @@ h3{font-size:clamp(16px,2vw,20px); margin:0 0 10px}
 .badge{font-size:var(--fs-sm); padding:2px 8px; border-radius:999px; background:#f2f6ff; border:1px solid #dbe7ff; color:#1f4fbf}
 .kpis{display:grid; grid-template-columns:repeat(2,1fr); gap:12px}
 .kpi{padding:12px; border:1px solid var(--line); border-radius:10px}
-.kpi b{font-size:var(--fs-lg)}
+.kpi b{font-size:var(--fs-lg); font-weight:600}
 .progress{height:10px; background:#f1f1f1; border-radius:999px; overflow:hidden; border:1px solid var(--line)}
 .progress > i{display:block; height:100%; background:linear-gradient(90deg, #6aa3ff, #2d6cdf)}
 .grid-accounts{display:grid; gap:12px}
@@ -74,6 +79,7 @@ input, select, textarea{
   width:100%; min-height:48px;
   padding:12px 14px; border:1px solid var(--line); border-radius:8px; background:#fff; color:#111;
   font:inherit;
+  font-weight:400; /* не допускаем "жирности" на iOS */
 }
 
 /* КОНТРОЛЫ И КНОПКИ: В РЯД И ОДНОЙ ВЫСОТЫ */
@@ -100,7 +106,10 @@ hr{border:none; border-top:1px solid var(--line); margin:12px 0}
 
 /* ======= ТАБЛИЦА ТРАНЗАКЦИЙ ======= */
 .table{width:100%; border-collapse:collapse; table-layout:auto;}
-.table th,.table td{border-bottom:1px solid var(--line); padding:8px; text-align:left; font-size:var(--fs-sm); vertical-align:middle;}
+.table th,.table td{
+  border-bottom:1px solid var(--line); padding:8px; text-align:left; font-size:var(--fs-sm); vertical-align:middle;
+  font-weight:400; /* базовый текст таблицы — обычный */
+}
 .table th{color:var(--muted); font-weight:600}
 
 /* Не переносим дату и «Счета» */
@@ -111,15 +120,18 @@ hr{border:none; border-top:1px solid var(--line); margin:12px 0}
 }
 #txTable td:nth-child(3){ min-width:180px; }
 
-/* ▲ NEW: заметка — всегда в одну строку с троеточием и адаптивной шириной */
-#txTable td:nth-child(6){ /* сама ячейка */
-  max-width: clamp(120px, 32vw, 520px);
+/* ▼ ПРАВКА: «Категория» и «Заметка» — всегда в одну строку, без троеточий */
+#txTable td:nth-child(5),
+#txTable td:nth-child(6){
+  white-space:nowrap;     /* одна строка */
 }
+/* Снимаем прежние ограничения ширины и троеточия у «Заметки» */
+#txTable td:nth-child(6){ max-width:none; }
 #txTable td:nth-child(6) .note-clip{
-  display:block;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
+  display:inline;         /* inline-элемент */
+  white-space:inherit;    /* наследуем nowrap от ячейки */
+  overflow:visible;       /* не обрезаем */
+  text-overflow:clip;     /* без троеточий */
 }
 
 /* Ховер-теги и мелочи */
@@ -176,7 +188,11 @@ details.modal > summary::-webkit-details-marker{display:none}
   src:local("SF Pro Display"), local("SFProDisplay-Regular");
   font-display:swap;
 }
-h1, h2, h3{ font-weight:600; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; font-synthesis:none }
+h1, h2, h3{
+  font-weight:600;
+  -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+  font-synthesis:none;
+}
 
 /* iOS/WebKit выравнивание date/month/select */
 input[type="date"], input[type="month"]{
@@ -323,7 +339,7 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
     </div>
 
     <!-- Переводы / Долг -->
-    <div class="card" id="cardTransfers"><!-- ▲ NEW id -->
+    <div class="card" id="cardTransfers">
       <h3>Переводы и долг</h3>
       <details class="modal" style="margin-bottom:8px" open>
         <summary class="summary-row">Перевод между счетами <small>внутренний</small></summary>
@@ -532,7 +548,7 @@ const fmtNum = (n,d=2) => (Number(n)||0).toLocaleString('ru-RU',{minimumFraction
 const clamp = (v,lo,hi)=>Math.max(lo,Math.min(hi,v));
 const todayISO = () => new Date().toISOString().slice(0,10);
 const uid = () => Math.random().toString(36).slice(2,10) + Date.now().toString(36).slice(-4);
-/* ▲ NEW: безопасный вывод для заметки */
+/* Безопасный вывод для заметки */
 const escapeHtml = (s='') => s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 
 /* ===========================
@@ -756,7 +772,7 @@ const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.ht
         <td>${accounts||'—'}</td>
         <td style="white-space:nowrap">${(t.type==='expense'||(t.type==='transfer'&&t.fromAccount))?'-':''}${fmtNum(t.amount,0)} ₽</td>
         <td>${t.category||'—'}</td>
-        <td><span class="note-clip">${escapeHtml(t.note||'')}</span></td>  <!-- ▲ NEW: одна строка -->
+        <td><span class="note-clip">${escapeHtml(t.note||'')}</span></td>
         <td class="actions">
           ${isPending ? `
             <div class="undo-wrap">
@@ -1121,7 +1137,7 @@ const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.ht
     finally{ e.target.value = ''; }
   };
 
-  /* ▲ NEW: аккордеон — «Перевод…» и «Платёж по долгу» управляются в своём контейнере */
+  /* Аккордеон в блоке переводов/долга */
   (function initAccordion(){
     const items = $$('#cardTransfers details.modal');
     items.forEach(d => d.addEventListener('toggle', () => {
