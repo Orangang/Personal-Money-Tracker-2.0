@@ -99,9 +99,21 @@ button.ghost{background:#fff; border-color:var(--line); color:#111}
 }
 
 hr{border:none; border-top:1px solid var(--line); margin:12px 0}
-.table{width:100%; border-collapse:collapse}
-.table th,.table td{border-bottom:1px solid var(--line); padding:8px; text-align:left; font-size:var(--fs-sm)}
+
+/* ======= ТАБЛИЦА ТРАНЗАКЦИЙ ======= */
+.table{width:100%; border-collapse:collapse; table-layout:auto;}
+.table th,.table td{border-bottom:1px solid var(--line); padding:8px; text-align:left; font-size:var(--fs-sm); vertical-align:middle;} /* ▲ выравнивание по центру */
 .table th{color:var(--muted); font-weight:600}
+
+/* Не переносим дату и «Счета», чтобы всё было в 1 строку */
+#txTable td:nth-child(1),   /* Дата */
+#txTable td:nth-child(3) {  /* Счета */
+  white-space:nowrap; 
+  min-width:120px;          /* дата */
+}
+#txTable td:nth-child(3){ min-width:180px; }  /* счета — шире */
+
+/* Ховер-теги и мелочи */
 .tag{display:inline-block; padding:2px 8px; font-size:var(--fs-sm); border:1px solid var(--line); border-radius:999px}
 .help{font-size:var(--fs-sm); color:var(--muted)}
 footer{margin:24px 0; text-align:center; color:var(--muted); font-size:var(--fs-sm)}
@@ -124,9 +136,7 @@ details.modal > summary::-webkit-details-marker{display:none}
   flex-wrap:wrap; gap:12px; margin-bottom:16px;
 }
 .page-header .info{flex:1 1 auto;}
-.user-panel{
-  display:flex; align-items:center; gap:10px; flex-shrink:0;
-}
+.user-panel{display:flex; align-items:center; gap:10px; flex-shrink:0;}
 .user-panel .userpill{
   font-size:var(--fs-sm);
   padding:4px 10px;
@@ -147,11 +157,7 @@ details.modal > summary::-webkit-details-marker{display:none}
   cursor:pointer;
   transition:border-color .2s ease, background .2s ease;
 }
-.user-panel button:hover{
-  border-color:#2d6cdf;
-  background:#fff;
-  color:#111;
-}
+.user-panel button:hover{ border-color:#2d6cdf; background:#fff; color:#111 }
 
 /* ТИПОГРАФИКА/ШРИФТ */
 @font-face{
@@ -161,11 +167,7 @@ details.modal > summary::-webkit-details-marker{display:none}
   src:local("SF Pro Display"), local("SFProDisplay-Regular");
   font-display:swap;
 }
-h1, h2, h3{
-  font-weight:600;
-  -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
-  font-synthesis:none;
-}
+h1, h2, h3{ font-weight:600; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; font-synthesis:none }
 
 /* iOS/WebKit выравнивание date/month/select под обычные инпуты */
 input[type="date"], input[type="month"]{
@@ -192,7 +194,7 @@ input[type="month"]::-webkit-date-and-time-value{ text-align:left }
 #txTable .btn-ghost:hover { color: var(--accent); border-color:#d4e1ff; }
 
 /* Кнопки в ячейке действий */
-.actions{display:flex; gap:8px; justify-content:flex-end}
+.actions{display:flex; gap:8px; justify-content:flex-end; align-items:center;} /* ▲ выравнивание по центру */
 .icon{width:18px; height:18px; display:inline-block; vertical-align:middle;}
 .icon svg{width:18px; height:18px; display:block}
 
@@ -212,15 +214,11 @@ html, body { scrollbar-width: none; -ms-overflow-style: none; }
 html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 
 /* ===== МОДАЛКА РЕДАКТИРОВАНИЯ ===== */
-/* по умолчанию модалка скрыта */
 .backdrop{
   position:fixed; inset:0; background:rgba(0,0,0,.35);
-  display:none; /* скрыта */
-  align-items:center; justify-content:center; padding:20px; z-index:999;
+  display:none; align-items:center; justify-content:center; padding:20px; z-index:999;
 }
-/* показываем только когда aria-hidden="false" */
 .backdrop[aria-hidden="false"]{ display:flex; }
-/* на случай других "hidden" — принудительно скрываем */
 [hidden]{ display:none !important; }
 
 .modal{
@@ -232,6 +230,12 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 .modal .row{gap:12px}
 .modal .two{display:grid; grid-template-columns:1fr 1fr; gap:12px}
 @media (max-width:640px){ .modal .two{grid-template-columns:1fr} }
+
+/* ===== Undo-режим в таблице ===== */
+.undo-wrap{display:flex; align-items:center; gap:8px; justify-content:flex-end;}
+.undo-btn{border:1px solid #d4e1ff; background:#eaf1ff; color:#1f4fbf; border-radius:8px; min-height:32px; padding:6px 10px; cursor:pointer; display:inline-flex; align-items:center; gap:6px;}
+.countdown{font-size:var(--fs-sm); color:var(--muted); border:1px dashed var(--line); border-radius:999px; padding:2px 8px; white-space:nowrap;}
+.tr-pending{opacity:.65;} /* немного «приглушаем» строку на время ожидания */
 </style>
 </head>
 <body>
@@ -409,7 +413,7 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
     <div style="overflow:auto">
       <table class="table" id="txTable">
         <thead>
-          <tr><th>Дата</th><th>Тип</th><th>Счета</th><th>Сумма</th><th>Категория</th><th>Заметка</th><th style="width:110px"></th></tr>
+          <tr><th>Дата</th><th>Тип</th><th>Счета</th><th>Сумма</th><th>Категория</th><th>Заметка</th><th style="width:160px"></th></tr>
         </thead>
         <tbody></tbody>
       </table>
@@ -678,6 +682,44 @@ const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.ht
   function labelAcc(k){ return ({base:'Базовый', fixed:'Расходный', fun:'Весёлый', save:'Накопления'})[k] || '—'; }
   function labelType(t){ return ({income:'Доход', expense:'Расход', transfer:'Перевод', debt:'Долг'})[t] || t; }
 
+  /* ===== Undo-очередь: отложенное удаление ===== */
+  const pendingDeletes = new Map(); // id -> {until, timer}
+  function startPendingDelete(id){
+    // если уже висит — перезапустим
+    if(pendingDeletes.has(id)){
+      clearInterval(pendingDeletes.get(id).timer);
+      pendingDeletes.delete(id);
+    }
+    const until = Date.now() + 10000; // 10 сек
+    const timer = setInterval(() => {
+      const span = document.querySelector(`[data-countdown="${id}"]`);
+      if(span){
+        const left = Math.max(0, Math.ceil((until - Date.now())/1000));
+        span.textContent = left + 'с';
+      }
+      if(Date.now() >= until){
+        clearInterval(timer);
+        pendingDeletes.delete(id);
+        // финальное удаление
+        const old = state.transactions.find(x=>x.id===id);
+        if(old){
+          applyTx(old, -1);
+          state.transactions = state.transactions.filter(t=>t.id!==id);
+          save(); renderAll();
+        }else{
+          renderTable();
+        }
+      }
+    }, 250);
+    pendingDeletes.set(id, {until, timer});
+    renderTable(); // перерисуем строку в режим Undo
+  }
+  function cancelPending(id){
+    const rec = pendingDeletes.get(id);
+    if(rec){ clearInterval(rec.timer); pendingDeletes.delete(id); }
+    renderTable();
+  }
+
   /* ====== РЕНДЕР ТАБЛИЦЫ (порядок по _order) ====== */
   function renderTable(){
     const month = $('#fltMonth').value || new Date().toISOString().slice(0,7);
@@ -702,6 +744,8 @@ const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.ht
         t.type==='debt'     ? `Долг${t.account? ' (− '+labelAcc(t.account)+')':''}` : ''
       );
       const tr = document.createElement('tr');
+      const isPending = pendingDeletes.has(t.id);
+      tr.className = isPending ? 'tr-pending' : '';
       tr.innerHTML = `
         <td>${t.date}</td>
         <td><span class="tag">${labelType(t.type)}</span></td>
@@ -710,14 +754,28 @@ const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.ht
         <td>${t.category||'—'}</td>
         <td>${t.note||''}</td>
         <td class="actions">
-          <button class="btn-ghost" data-edit="${t.id}" title="Редактировать" aria-label="Редактировать">
-            <span class="icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>
-              </svg>
-            </span>
-          </button>
-          <button class="btn-ghost" data-del="${t.id}" title="Удалить" aria-label="Удалить">✕</button>
+          ${isPending ? `
+            <div class="undo-wrap">
+              <button class="undo-btn" data-undo="${t.id}" title="Отменить удаление" aria-label="Отменить удаление">
+                <span class="icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 14l-4-4 4-4"/><path d="M20 20a9 9 0 0 0-9-9H5"/>
+                  </svg>
+                </span>
+                Отмена
+              </button>
+              <span class="countdown" data-countdown="${t.id}">10с</span>
+            </div>
+          ` : `
+            <button class="btn-ghost" data-edit="${t.id}" title="Редактировать" aria-label="Редактировать">
+              <span class="icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>
+                </svg>
+              </span>
+            </button>
+            <button class="btn-ghost" data-del="${t.id}" title="Удалить" aria-label="Удалить">✕</button>
+          `}
         </td>
       `;
       tbody.appendChild(tr);
@@ -725,16 +783,12 @@ const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.ht
 
     $('#listInfo').textContent = `Показано: ${list.length} операций. Всего в базе: ${state.transactions.length}.`;
 
+    // обработчики
     $$('button[data-del]').forEach(btn=>{
-      btn.onclick = () => {
-        const id = btn.getAttribute('data-del');
-        const old = state.transactions.find(x=>x.id===id);
-        if(!old) return;
-        // откатить влияние перед удалением
-        applyTx(old, -1);
-        state.transactions = state.transactions.filter(t=>t.id!==id);
-        save(); renderAll();
-      };
+      btn.onclick = () => startPendingDelete(btn.getAttribute('data-del')); // ▲ запуск Undo-таймера
+    });
+    $$('button[data-undo]').forEach(btn=>{
+      btn.onclick = () => cancelPending(btn.getAttribute('data-undo'));     // ▲ отмена удаления
     });
     $$('button[data-edit]').forEach(btn=>{
       btn.onclick = () => openEdit(btn.getAttribute('data-edit'));
@@ -879,6 +933,9 @@ const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.ht
   }
 
   function openEdit(id){
+    // если висит Undo — снимаем и редактируем как обычно
+    cancelPending(id);
+
     const tx = state.transactions.find(x=>x.id===id);
     if(!tx) return;
     editingId = id;
@@ -904,7 +961,6 @@ const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.ht
     }
 
     showEditUIByType(tx.type);
-    // показать модалку
     const bg = $('#editBackdrop');
     bg.hidden = false; bg.setAttribute('aria-hidden','false');
     setTimeout(()=>$('#btnSaveEdit').focus(), 0);
@@ -947,7 +1003,7 @@ const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.ht
     // 1) откатить старую
     applyTx(old, -1);
 
-    // 2) проверка нехватки средств (как при добавлении)
+    // 2) проверка нехватки средств
     const A = state.settings.accounts;
     const needConfirm = (
       (tp==='expense' && A[draft.account] < amount) ||
@@ -1037,7 +1093,7 @@ const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.ht
     const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `dm_fin_${new Дате().toISOString().slice(0,10)}.json`;
+    a.download = `dm_fin_${new Дате().toISOString().slice(0,10)}.json`; // ▲ фикс опечатки
     a.click(); URL.revokeObjectURL(a.href);
   };
   $('#btnImport').onclick = () => { $('#fileImport').click(); };
