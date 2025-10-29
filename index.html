@@ -261,72 +261,6 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 .undo-btn{border:1px solid #d4e1ff; background:#eaf1ff; color:#1f4fbf; border-radius:8px; min-height:32px; padding:6px 10px; cursor:pointer; display:inline-flex; align-items:center; gap:6px;}
 .countdown{font-size:var(--fs-sm); color:var(--muted); border:1px dashed var(--line); border-radius:999px; padding:2px 8px; white-space:nowrap;}
 .tr-pending{opacity:.65;}
-
-
-
-
-/* ====== PATCH: Единая линия строк таблицы ====== */
-/* заголовок оставляем с линией */
-#txTable thead th{ border-bottom:1px solid var(--line); }
-/* у ячеек тела забираем нижнюю границу */
-#txTable tbody td{ border-bottom:none; }
-/* рисуем ОДНУ линию на строку — никуда не «прыгает» */
-#txTable tbody tr{
-  background-image: linear-gradient(по right, var(--line), var(--line));
-  background-repeat: no-repeat;
-  background-position: 0 100%;
-  background-size: 100% 1px;
-}
-
-/* ====== PATCH: Ровные паддинги и высоты в таблице ====== */
-#txTable td, #txTable th{ padding-top:10px; padding-bottom:10px; }
-#txTable .actions{
-  display:flex; align-items:center; justify-content:flex-end; gap:8px;
-  min-height:32px;
-}
-#txTable .btn-ghost,
-#txTable [data-edit]{ height:36px; min-height:36px; }
-
-/* ====== PATCH: Единый шрифт в инпутах и гашение «жирности» WebKit ====== */
-input, select, textarea{
-  font-weight:400 !important;
-  -webkit-font-smoothing: antialiased;
-  font-synthesis: none;               /* без fake bold/italic */
-  text-rendering: optimizeLegibility;
-  -webkit-text-size-adjust: 100%;
-}
-
-/* ====== PATCH: На адаптивах (≤640) — заголовки Medium, месяц справа ====== */
-@media (max-width:640px){
-  h1, h2, h3{ font-weight:500; }      /* было Semibold/Bold → Medium */
-
-  /* карточечные заголовки — в одну линию и по краям */
-  .card .card-title{
-    flex-direction: row !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    gap: 8px !important;
-  }
-  .card .card-title h2{ margin:0; }
-
-  /* Квадратная кнопка удаления с крестиком */
-  #txTable button[data-del]{
-    width:40px; aspect-ratio:1 / 1;
-    padding:0; display:inline-flex; align-items:center; justify-content:center;
-    border-radius:8px;                 /* квадратная, не «таблетка» */
-  }
-  /* Чуть меньше зазоры в actions на узких экранах */
-  #txTable .actions{ gap:6px; }
-}
-
-/* ====== PATCH: Ховеры и контуры (оставляем твой стиль) ====== */
-#txTable .btn-ghost:hover{ color: var(--accent); border-color:#d4e1ff; background:#fff; }
-
-
-
-
-
-   
 </style>
 </head>
 <body>
@@ -612,8 +546,8 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const fmtRUB = n => (Number(n)||0).toLocaleString('ru-RU',{style:'currency',currency:'RUB',maximumFractionDigits:0});
 const fmtNum = (n,d=2) => (Number(n)||0).toLocaleString('ru-RU',{minimumFractionDigits:d,maximumFractionDigits:d});
 const clamp = (v,lo,hi)=>Math.max(lo,Math.min(hi,v));
-const todayISO = () => new Дате().toISOString().slice(0,10);
-const uid = () => Math.random().toString(36).slice(2,10) + Дате.now().toString(36).slice(-4);
+const todayISO = () => new Date().toISOString().slice(0,10);
+const uid = () => Math.random().toString(36).slice(2,10) + Date.now().toString(36).slice(-4);
 /* Безопасный вывод для заметки */
 const escapeHtml = (s='') => s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 
@@ -705,7 +639,7 @@ const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.ht
   $('#debtDate').value = todayISO();
 
   function initMonthFilter(){
-    const def = new Дате().toISOString().slice(0,7);
+    const def = new Date().toISOString().slice(0,7);
     $('#fltMonth').value = def;
   }
   initMonthFilter();
@@ -726,9 +660,9 @@ const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.ht
   ['spBase','spFixed','spFun','spSave'].forEach(id => $('#'+id).addEventListener('input', updateSplitSumHelp));
 
   function renderDashboard(){
-    const month = $('#fltMonth').value || new Дате().toISOString().slice(0,7);
+    const month = $('#fltMonth').value || new Date().toISOString().slice(0,7);
     const [y,m] = month.split('-').map(Number);
-    $('#currentMonthBadge').textContent = new Дате(y, m-1, 1).toLocaleString('ru-RU',{month:'long',year:'numeric'});
+    $('#currentMonthBadge').textContent = new Date(y, m-1, 1).toLocaleString('ru-RU',{month:'long',year:'numeric'});
 
     const A = state.settings.accounts;
     const accs = [
@@ -764,7 +698,7 @@ const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.ht
     const totalBal = A.base + A.fixed + A.fun + A.save;
     $('#kpiTotal').textContent = fmtRUB(totalBal);
 
-    $('#todayStr').textContent = new Дате().toLocaleDateString('ru-RU');
+    $('#todayStr').textContent = new Date().toLocaleDateString('ru-RU');
   }
 
   function labelAcc(k){ return ({base:'Базовый', fixed:'Расходный', fun:'Весёлый', save:'Накопления'})[k] || '—'; }
@@ -777,14 +711,14 @@ const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.ht
       clearInterval(pendingDeletes.get(id).timer);
       pendingDeletes.delete(id);
     }
-    const until = Дате.now() + 10000;
+    const until = Date.now() + 10000;
     const timer = setInterval(() => {
       const span = document.querySelector(`[data-countdown="${id}"]`);
       if(span){
-        const left = Math.max(0, Math.ceil((until - Дате.now())/1000));
+        const left = Math.max(0, Math.ceil((until - Date.now())/1000));
         span.textContent = left + 'с';
       }
-      if(Дате.now() >= until){
+      if(Date.now() >= until){
         clearInterval(timer);
         pendingDeletes.delete(id);
         const old = state.transactions.find(x=>x.id===id);
@@ -808,7 +742,7 @@ const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.ht
 
   /* ====== РЕНДЕР ТАБЛИЦЫ ====== */
   function renderTable(){
-    const month = $('#fltMonth').value || new Дате().toISOString().slice(0,7);
+    const month = $('#fltMonth').value || new Date().toISOString().slice(0,7);
     const tp = $('#fltType').value;
     const acc = $('#fltAcc').value;
     const q = ($('#fltSearch').value||'').trim().toLowerCase();
@@ -945,14 +879,14 @@ const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.ht
     const date = $('#trDate').value || todayISO();
     const amount = Number($('#trAmount').value||0);
     const from = $('#trFrom').value;
-    const по = $('#trTo').value;
+    const to = $('#trTo').value;
     const note = ($('#trNote').value||'');
     if(amount<=0) return alert('Введите сумму перевода > 0');
-    if(from===по) return alert('Выберите разные счета');
+    if(from===to) return alert('Выберите разные счета');
     if(state.settings.accounts[from] < amount){
       if(!confirm('На счёте-источнике не хватает средств. Продолжить?')) return;
     }
-    const tx = { id:uid(), _order: nextSeq(), date, type:'transfer', fromAccount:from, toAccount:по, amount, category:'Перевод', note };
+    const tx = { id:uid(), _order: nextSeq(), date, type:'transfer', fromAccount:from, toAccount:to, amount, category:'Перевод', note };
     state.transactions.push(tx);
     applyTx(tx, +1);
     save();
@@ -1131,7 +1065,7 @@ const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.ht
     alert('Настройки сохранены.');
   };
 
-  function isoShift(дней){ const d = new Дате(); d.setDate(d.getDate()+дней); return d.toISOString().slice(0,10); }
+  function isoShift(days){ const d = new Date(); d.setDate(d.getDate()+days); return d.toISOString().slice(0,10); }
 
   $('#btnFillDemo').onclick = () => {
     if(!confirm('Загрузить демо-данные и перезаписать текущие?')) return;
@@ -1215,25 +1149,5 @@ const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.ht
   renderAll();
 })();
 </script>
-
-
-<script>
-  // iOS Safari иногда делает inputs визуально толще.
-  // Форсим нормальную толщину, когда устройство сообщает масштабирование.
-  (function fixIOSBold(){
-    const ua = navigator.userAgent || "";
-    if(/(iPhone|iPad|iPod)/.test(ua)){
-      document.addEventListener('focusin', e=>{
-        if(e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)){
-          e.target.style.fontWeight = '400';
-        }
-      });
-    }
-  })();
-</script>
-
-
-   
 </body>
 </html>
-
