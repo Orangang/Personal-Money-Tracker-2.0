@@ -57,7 +57,7 @@ button.ghost{background:#fff; border-color:var(--line); color:#1f1f1f;}
   border-radius:10px;
   font-size:var(--fs-sm);
   color:#374151;
-  margin-bottom:18px; /* отступ снизу, чтобы не липло */
+  margin-bottom:18px;
 }
 .alert.ok{border-color:#c6f1d3; background:#ecfdf5; color:#065f46}
 .alert.err{border-color:#ffd6d6; background:#fff1f1; color:#991b1b}
@@ -73,21 +73,16 @@ footer{margin-top:14px; text-align:center; color:#6b7280; font-size:var(--fs-sm)
 }
 </style>
 
-
 <script>
-// Блокировка контекстного меню и Ctrl+U
+/* Блокировка контекстного меню и Ctrl+U — опционально */
 document.addEventListener('contextmenu', e => e.preventDefault());
 document.addEventListener('keydown', e => {
   if(e.ctrlKey && ['u','s','c','x'].includes(e.key.toLowerCase())) e.preventDefault();
   if(e.keyCode === 123) e.preventDefault(); // F12
 });
 </script>
-
-
-
-  
 </head>
-  
+
 <body>
 <div class="wrap">
   <div class="card">
@@ -161,9 +156,10 @@ const SUPABASE_URL = "https://hxbrvnwukieluzlffgyr.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh4YnJ2bnd1a2llbHV6bGZmZ3lyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE0NTM1NDMsImV4cCI6MjA3NzAyOTU0M30.IWViKSutxlXo1R3DqArijjeseK6nQ9m55ZPe5EUToLQ";
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const AUTH_URL  = "https://orangang.github.io/Personal-Money-Tracker-2.0/auth.html";
-const INDEX_URL = "https://orangang.github.io/Personal-Money-Tracker-2.0/index.html";
-const RESET_URL = "https://orangang.github.io/Personal-Money-Tracker-2.0/reset.html";
+/* === НОВЫЕ URL на GitHub Pages под username: cdn-dmitry-design === */
+const AUTH_URL  = "https://cdn-dmitry-design.github.io/Personal-Money-Tracker-2.0/auth.html";
+const INDEX_URL = "https://cdn-dmitry-design.github.io/Personal-Money-Tracker-2.0/index.html";
+const RESET_URL = "https://cdn-dmitry-design.github.io/Personal-Money-Tracker-2.0/reset.html";
 
 /* ===== UI helpers ===== */
 const $ = (s, r=document) => r.querySelector(s);
@@ -200,13 +196,13 @@ tabSignup.onclick = () => {
 /* ===== Временное локальное хранение для автоподстановки ===== */
 const PENDING_KEY = "dm_pending_creds";
 const PENDING_TTL_MS = 24*60*60*1000;
-function savePending(email, pass){ try{ localStorage.setItem(PENDING_KEY, JSON.stringify({email, pass, ts: Дате.now()})); }catch(e){} }
+function savePending(email, pass){ try{ localStorage.setItem(PENDING_KEY, JSON.stringify({email, pass, ts: Date.now()})); }catch(e){} }
 function readPending(){
   try{
     const raw = localStorage.getItem(PENDING_KEY);
     if(!raw) return null;
     const obj = JSON.parse(raw);
-    if(!obj || !obj.ts || (Дате.now()-obj.ts)>PENDING_TTL_MS){ clearPending(); return null; }
+    if(!obj || !obj.ts || (Date.now()-obj.ts)>PENDING_TTL_MS){ clearPending(); return null; }
     return obj;
   }catch(e){ return null; }
 }
@@ -292,10 +288,8 @@ $("#btnReset").onclick = async () => {
   if(!email) return show("", "Укажите email и повторите.");
 
   try {
-    // новая ссылка на отдельную страницу сброса пароля
-    const RESET_URL = "https://orangang.github.io/Personal-Money-Tracker-2.0/reset.html";
-
-    // отправляем письмо с редиректом напрямую на reset.html
+    /* локальная константа — тоже указывает на новый reset.html */
+    const RESET_URL = "https://cdn-dmitry-design.github.io/Personal-Money-Tracker-2.0/reset.html";
     const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: RESET_URL });
     if (error) throw error;
 
@@ -311,8 +305,6 @@ async function handleRecovery(){
   hideMsg();
   const { data: { session } } = await supabase.auth.getSession();
   if(!(session && session.user)){
-    // для v2 Supabase при открытии по ссылке создаётся временная сессия
-    // если её нет — линк просрочен
     show("err","Ссылка на сброс пароля устарела или недействительна.");
     return;
   }
@@ -324,7 +316,7 @@ async function handleRecovery(){
 }
 handleRecovery();
 
-/* ===== Установка нового пароля (2 поля + проверка совпадения) ===== */
+/* ===== Установка нового пароля ===== */
 frmRec.addEventListener("submit", async (e)=>{
   e.preventDefault(); hideMsg();
   const p1 = $("#rec-pass1").value.trim();
@@ -339,7 +331,7 @@ frmRec.addEventListener("submit", async (e)=>{
   }catch(err){ show("err","Ошибка обновления пароля: " + err.message); }
 });
 
-/* ===== Автоподстановка из локального сохранения (на всякий) ===== */
+/* ===== Автоподстановка из локального сохранения ===== */
 (function prefillLoginFromPending(){
   const p = readPending();
   if(p){
